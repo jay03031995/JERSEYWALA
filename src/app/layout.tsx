@@ -17,10 +17,115 @@ const inter = Inter({
   variable: '--font-inter',
 })
 
+const SITE_URL = 'https://thejerseywala.in'
+const SITE_NAME = 'The Jersey Wala'
+
 export const metadata: Metadata = {
-  title: 'The Jersey Wala — Official Sports Jerseys India',
+  metadataBase: new URL(SITE_URL),
+  title: {
+    default: 'The Jersey Wala — Official Sports Jerseys India',
+    template: '%s | The Jersey Wala',
+  },
   description:
-    'Official and replica jerseys for cricket, football, IPL and more. All sizes, every team — delivered fast across India.',
+    'Buy official & replica jerseys for IPL 2026, cricket, football and more. Shop Mumbai Indians, CSK, RCB & all IPL teams. All sizes, fast delivery across India.',
+  keywords: [
+    'IPL jersey', 'IPL 2026 jersey', 'cricket jersey India', 'Mumbai Indians jersey',
+    'CSK jersey', 'sports jersey online', 'replica jersey', 'football jersey India',
+    'buy jersey online India', 'The Jersey Wala',
+  ],
+  authors: [{ name: 'The Jersey Wala', url: SITE_URL }],
+  creator: 'The Jersey Wala',
+  publisher: 'The Jersey Wala',
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: { index: true, follow: true },
+  },
+  icons: {
+    icon: '/favicon.ico',
+    shortcut: '/favicon.ico',
+    apple: '/favicon.ico',
+  },
+  openGraph: {
+    type: 'website',
+    locale: 'en_IN',
+    url: SITE_URL,
+    siteName: SITE_NAME,
+    title: 'The Jersey Wala — Official Sports Jerseys India',
+    description:
+      'Buy official & replica jerseys for IPL 2026, cricket, football and more. All IPL teams, all sizes — delivered fast across India.',
+    images: [
+      {
+        url: '/og-image.jpg',
+        width: 1200,
+        height: 630,
+        alt: 'The Jersey Wala — Official Sports Jerseys India',
+      },
+    ],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    site: '@thejerseywala',
+    creator: '@thejerseywala',
+    title: 'The Jersey Wala — Official Sports Jerseys India',
+    description:
+      'Buy official & replica jerseys for IPL 2026, cricket, football and more. All teams, all sizes — fast delivery across India.',
+    images: ['/og-image.jpg'],
+  },
+  alternates: {
+    canonical: SITE_URL,
+  },
+}
+
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@graph': [
+    {
+      '@type': 'Organization',
+      '@id': `${SITE_URL}/#organization`,
+      name: SITE_NAME,
+      url: SITE_URL,
+      logo: {
+        '@type': 'ImageObject',
+        url: `${SITE_URL}/favicon.ico`,
+      },
+      sameAs: [
+        'https://instagram.com/thejerseywala',
+        'https://twitter.com/thejerseywala',
+      ],
+      contactPoint: {
+        '@type': 'ContactPoint',
+        contactType: 'customer service',
+        availableLanguage: ['English', 'Hindi'],
+        areaServed: 'IN',
+      },
+    },
+    {
+      '@type': 'WebSite',
+      '@id': `${SITE_URL}/#website`,
+      url: SITE_URL,
+      name: SITE_NAME,
+      publisher: { '@id': `${SITE_URL}/#organization` },
+      potentialAction: {
+        '@type': 'SearchAction',
+        target: { '@type': 'EntryPoint', urlTemplate: `${SITE_URL}/shop?q={search_term_string}` },
+        'query-input': 'required name=search_term_string',
+      },
+    },
+    {
+      '@type': 'OnlineStore',
+      '@id': `${SITE_URL}/#store`,
+      name: SITE_NAME,
+      url: SITE_URL,
+      description: 'Official and replica sports jerseys for IPL, cricket, football — delivered across India.',
+      currenciesAccepted: 'INR',
+      priceRange: '₹₹',
+      areaServed: {
+        '@type': 'Country',
+        name: 'India',
+      },
+    },
+  ],
 }
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
@@ -32,6 +137,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           dangerouslySetInnerHTML={{
             __html: `(function(){try{var t=localStorage.getItem('theme');if(t)document.documentElement.setAttribute('data-theme',t)}catch(e){}})()`,
           }}
+        />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
         />
       </head>
       <body className={`${oswald.variable} ${inter.variable} min-h-screen flex flex-col`}>
