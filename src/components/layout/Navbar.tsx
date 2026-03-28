@@ -17,6 +17,20 @@ const NAV = [
     ],
   },
   {
+    label: 'IPL Teams', children: [
+      { label: 'Chennai Super Kings', href: '/team/chennai-super-kings' },
+      { label: 'Mumbai Indians', href: '/team/mumbai-indians' },
+      { label: 'Royal Challengers Bengaluru', href: '/team/royal-challengers-bengaluru' },
+      { label: 'Kolkata Knight Riders', href: '/team/kolkata-knight-riders' },
+      { label: 'Delhi Capitals', href: '/team/delhi-capitals' },
+      { label: 'Punjab Kings', href: '/team/punjab-kings' },
+      { label: 'Rajasthan Royals', href: '/team/rajasthan-royals' },
+      { label: 'Sunrisers Hyderabad', href: '/team/sunrisers-hyderabad' },
+      { label: 'Gujarat Titans', href: '/team/gujarat-titans' },
+      { label: 'Lucknow Super Giants', href: '/team/lucknow-super-giants' },
+    ],
+  },
+  {
     label: 'Leagues', children: [
       { label: 'Premier League', href: '/league/premier-league' },
       { label: 'La Liga', href: '/league/la-liga' },
@@ -117,7 +131,7 @@ export default function Navbar() {
                   {item.label} <ChevronDown size={11} />
                 </button>
                 <div
-                  className="absolute top-full left-0 mt-2 w-48 rounded-xl p-1.5 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-150 translate-y-1 group-hover:translate-y-0 shadow-2xl"
+                  className={`absolute top-full left-0 mt-2 rounded-xl p-1.5 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-150 translate-y-1 group-hover:translate-y-0 shadow-2xl ${item.label === 'IPL Teams' ? 'w-64' : 'w-48'}`}
                   style={{ background: 'var(--bg-raised)', border: '1px solid var(--border)' }}
                 >
                   {item.children.map((c) => (
