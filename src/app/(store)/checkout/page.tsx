@@ -7,7 +7,7 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import toast from 'react-hot-toast'
-import { ShieldCheck, Truck, ArrowRight, ShoppingBag, CreditCard, Banknote } from 'lucide-react'
+import { ShieldCheck, Truck, ArrowRight, ShoppingBag, CreditCard, Banknote, Loader2 } from 'lucide-react'
 
 interface AddressForm {
   full_name: string
@@ -67,9 +67,33 @@ export default function CheckoutPage() {
   const router = useRouter()
   const [address, setAddress] = useState<AddressForm>(EMPTY)
   const [loading, setLoading] = useState(false)
+  const [pinLoading, setPinLoading] = useState(false)
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('online')
 
   const set = (k: keyof AddressForm) => (v: string) => setAddress((a) => ({ ...a, [k]: v }))
+
+  const handlePinChange = async (pin: string) => {
+    set('postal_code')(pin)
+    if (pin.length !== 6 || !/^\d{6}$/.test(pin)) return
+    setPinLoading(true)
+    try {
+      const res = await fetch(`https://api.postalpincode.in/pincode/${pin}`)
+      const [data] = await res.json()
+      if (data.Status === 'Success' && data.PostOffice?.length > 0) {
+        const po = data.PostOffice[0]
+        setAddress((a) => ({
+          ...a,
+          postal_code: pin,
+          city: po.District || po.Name || a.city,
+          state: po.State || a.state,
+        }))
+      }
+    } catch {
+      // silently ignore — user can fill manually
+    } finally {
+      setPinLoading(false)
+    }
+  }
 
   const subtotal = total()
   const shipping = subtotal >= 999 ? 0 : 99
@@ -248,12 +272,44 @@ export default function CheckoutPage() {
                 value={address.address_line1} onChange={set('address_line1')} />
               <Field label="Area / Landmark" placeholder="Area, Landmark"
                 value={address.address_line2} onChange={set('address_line2')} required={false} />
-              <Field label="City" placeholder="Mumbai"
+              {/* PIN Code with auto-fill */}
+              <div style={{ gridColumn: 'span 1' }}>
+                <label style={{
+                  display: 'block', fontSize: '11px', fontWeight: 500, marginBottom: '5px',
+                  color: 'var(--fg-muted)', fontFamily: 'var(--font-inter)',
+                  letterSpacing: '0.04em', textTransform: 'uppercase',
+                }}>
+                  PIN Code
+                </label>
+                <div style={{ position: 'relative' }}>
+                  <input
+                    type="text"
+                    inputMode="numeric"
+                    maxLength={6}
+                    value={address.postal_code}
+                    onChange={(e) => handlePinChange(e.target.value.replace(/\D/g, ''))}
+                    required
+                    placeholder="400001"
+                    style={{
+                      width: '100%', padding: '9px 36px 9px 13px', borderRadius: '10px',
+                      fontSize: '13px', background: 'var(--bg-raised)', color: 'var(--fg)',
+                      border: '1px solid var(--border)', fontFamily: 'var(--font-inter)',
+                      outline: 'none', boxSizing: 'border-box',
+                    }}
+                    onFocus={(e) => { e.currentTarget.style.borderColor = 'var(--fg-sub)' }}
+                    onBlur={(e) => { e.currentTarget.style.borderColor = 'var(--border)' }}
+                  />
+                  {pinLoading && (
+                    <span style={{ position: 'absolute', right: '10px', top: '50%', transform: 'translateY(-50%)' }}>
+                      <Loader2 size={14} className="animate-spin" style={{ color: 'var(--fg-muted)' }} />
+                    </span>
+                  )}
+                </div>
+              </div>
+              <Field label="City" placeholder="Auto-filled from PIN"
                 value={address.city} onChange={set('city')} half />
-              <Field label="State" placeholder="Maharashtra"
+              <Field label="State" placeholder="Auto-filled from PIN"
                 value={address.state} onChange={set('state')} half />
-              <Field label="PIN Code" placeholder="400001"
-                value={address.postal_code} onChange={set('postal_code')} half />
             </div>
 
             <div
