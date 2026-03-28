@@ -142,6 +142,12 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
         />
+        {/* Google AdSense — in <head> for site verification by Google crawler */}
+        <script
+          async
+          src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-6641708917809759"
+          crossOrigin="anonymous"
+        />
       </head>
       <body className={`${oswald.variable} ${inter.variable} min-h-screen flex flex-col`}>
         <ConditionalLayout>{children}</ConditionalLayout>
