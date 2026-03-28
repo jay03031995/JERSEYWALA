@@ -267,7 +267,7 @@ export default function ProductForm({ teams, initial }: { teams: Team[]; initial
                   <label className="block text-[11px] font-medium mb-1.5 uppercase tracking-wider" style={labelStyle}>{label}</label>
                   <input
                     type="number"
-                    value={(form as Record<string, unknown>)[key] as string}
+                    value={(form as unknown as Record<string, unknown>)[key] as string}
                     onChange={(e) => set(key as keyof ProductData, e.target.value)}
                     placeholder="0"
                     className="w-full px-3 py-2.5 rounded-xl text-[13px] outline-none"

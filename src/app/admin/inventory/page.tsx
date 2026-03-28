@@ -48,7 +48,7 @@ export default async function AdminInventoryPage() {
             </thead>
             <tbody>
               {(variants ?? []).map((variant) => {
-                const product = variant.product as { id: string; name: string; slug: string } | null
+                const product = (Array.isArray(variant.product) ? variant.product[0] : variant.product) as { id: string; name: string; slug: string } | null
                 const isOut = variant.stock_quantity === 0
                 const isLow = variant.stock_quantity > 0 && variant.stock_quantity <= 5
 

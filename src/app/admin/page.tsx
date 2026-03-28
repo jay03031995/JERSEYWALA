@@ -26,7 +26,7 @@ export default async function AdminDashboard() {
     { count: productCount },
     { count: lowStockCount },
     { data: recentOrders },
-    { data: pendingOrders },
+    { count: pendingCount },
   ] = await Promise.all([
     admin.from('orders').select('total').eq('payment_status', 'paid'),
     admin.from('orders').select('*', { count: 'exact', head: true }),
@@ -57,7 +57,7 @@ export default async function AdminDashboard() {
       icon: ShoppingBag,
       color: 'var(--blue)',
       bg: 'rgba(0,180,216,0.08)',
-      sub: `${pendingOrders?.count ?? 0} pending`,
+      sub: `${pendingCount ?? 0} pending`,
       href: '/admin/orders',
     },
     {
