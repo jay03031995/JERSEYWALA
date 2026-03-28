@@ -95,6 +95,7 @@ export default async function AdminDashboard() {
         </div>
         <div className="flex items-center gap-2 flex-wrap justify-end">
           <SeedButton label="Seed IPL 2026" endpoint="/api/admin/seed-ipl" />
+          <SeedButton label="Seed CSK 2026" endpoint="/api/admin/seed-csk" />
           <SeedButton label="Seed Cricket" endpoint="/api/admin/seed-cricket" />
           <SeedButton label="Seed Football" endpoint="/api/admin/seed-football" />
         </div>
