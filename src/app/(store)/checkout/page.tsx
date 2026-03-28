@@ -7,7 +7,7 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import toast from 'react-hot-toast'
-import { ShieldCheck, Truck, ArrowRight, ShoppingBag } from 'lucide-react'
+import { ShieldCheck, Truck, ArrowRight, ShoppingBag, CreditCard, Banknote } from 'lucide-react'
 
 interface AddressForm {
   full_name: string
@@ -60,11 +60,14 @@ function Field({
   )
 }
 
+type PaymentMethod = 'online' | 'cod'
+
 export default function CheckoutPage() {
   const { items, total, clearCart } = useCartStore()
   const router = useRouter()
   const [address, setAddress] = useState<AddressForm>(EMPTY)
   const [loading, setLoading] = useState(false)
+  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('online')
 
   const set = (k: keyof AddressForm) => (v: string) => setAddress((a) => ({ ...a, [k]: v }))
 
@@ -72,44 +75,58 @@ export default function CheckoutPage() {
   const shipping = subtotal >= 999 ? 0 : 99
   const grandTotal = subtotal + shipping
 
-  const handlePayment = async (e: React.FormEvent) => {
+  const createOrder = async () => {
+    const orderRes = await fetch('/api/orders', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        items: items.map((i) => ({
+          productId: i.productId,
+          variantId: i.variantId,
+          name: i.name,
+          playerName: i.playerName,
+          size: i.size,
+          quantity: i.quantity,
+          price: i.price,
+          imageUrl: i.imageUrl,
+        })),
+        address,
+        subtotal,
+        shipping,
+        total: grandTotal,
+        paymentMethod,
+      }),
+    })
+    const data = await orderRes.json()
+    if (data.error || !data.orderId) throw new Error(data.error ?? 'Failed to create order')
+    return data as { orderId: string; orderNumber: string }
+  }
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (items.length === 0) { toast.error('Your cart is empty'); return }
     setLoading(true)
-    try {
-      // Step 1: Create order in DB
-      const orderRes = await fetch('/api/orders', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          items: items.map((i) => ({
-            productId: i.productId,
-            variantId: i.variantId,
-            name: i.name,
-            playerName: i.playerName,
-            size: i.size,
-            quantity: i.quantity,
-            price: i.price,
-            imageUrl: i.imageUrl,
-          })),
-          address,
-          subtotal,
-          shipping,
-          total: grandTotal,
-        }),
-      })
-      const { orderId, error: orderError } = await orderRes.json()
-      if (orderError || !orderId) throw new Error(orderError ?? 'Failed to create order')
 
-      // Step 2: Create Razorpay order
+    try {
+      if (paymentMethod === 'cod') {
+        // ── COD: just create order, go to success ──
+        await createOrder()
+        clearCart()
+        router.push('/checkout/success?method=cod')
+        return
+      }
+
+      // ── Online: Razorpay flow ──
+      const { orderId } = await createOrder()
+
       const payRes = await fetch('/api/payment/create', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ amount: grandTotal, orderId }),
       })
-      const { razorpayOrderId } = await payRes.json()
+      const { razorpayOrderId, error: payErr } = await payRes.json()
+      if (payErr || !razorpayOrderId) throw new Error(payErr ?? 'Payment initiation failed')
 
-      // Step 3: Open Razorpay
       const script = document.createElement('script')
       script.src = 'https://checkout.razorpay.com/v1/checkout.js'
       document.body.appendChild(script)
@@ -123,7 +140,6 @@ export default function CheckoutPage() {
           description: `${items.length} jersey${items.length > 1 ? 's' : ''}`,
           order_id: razorpayOrderId,
           handler: async (response: { razorpay_order_id: string; razorpay_payment_id: string; razorpay_signature: string }) => {
-            // Step 4: Verify & mark paid
             const v = await fetch('/api/payment/verify', {
               method: 'POST', headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({ ...response, orderId }),
@@ -136,6 +152,9 @@ export default function CheckoutPage() {
           theme: { color: '#E8192C' },
           modal: { ondismiss: () => setLoading(false) },
         }).open()
+      }
+      script.onerror = () => {
+        throw new Error('Could not load payment gateway. Check your connection.')
       }
     } catch (err) {
       toast.error(err instanceof Error ? err.message : 'Something went wrong. Try again.')
@@ -185,7 +204,7 @@ export default function CheckoutPage() {
           boxShadow: '0 0 60px rgba(0,0,0,0.4)',
         }}
       >
-        {/* Card header */}
+        {/* Header */}
         <div
           className="flex items-center justify-between px-6 py-4"
           style={{ borderBottom: '1px solid var(--border)' }}
@@ -209,10 +228,9 @@ export default function CheckoutPage() {
           </div>
         </div>
 
-        {/* Single form wraps both columns */}
-        <form onSubmit={handlePayment} className="grid lg:grid-cols-[1fr_320px]">
+        <form onSubmit={handleSubmit} className="grid lg:grid-cols-[1fr_320px]">
 
-          {/* ── LEFT: DELIVERY ── */}
+          {/* ── LEFT: DELIVERY + PAYMENT METHOD ── */}
           <div className="px-6 py-7" style={{ borderRight: '1px solid var(--border)' }}>
             <p
               className="text-[11px] font-semibold uppercase tracking-[0.1em] mb-4"
@@ -249,9 +267,68 @@ export default function CheckoutPage() {
                   : 'Delivery within 5–7 business days · ₹99 shipping fee'}
               </p>
             </div>
+
+            {/* ── PAYMENT METHOD SELECTOR ── */}
+            <p
+              className="text-[11px] font-semibold uppercase tracking-[0.1em] mt-7 mb-3"
+              style={{ color: 'var(--fg-sub)', fontFamily: 'var(--font-inter)' }}
+            >
+              Payment Method
+            </p>
+            <div className="grid grid-cols-2 gap-3">
+              {([
+                { id: 'online', label: 'Pay Online', sub: 'UPI · Cards · Wallets', Icon: CreditCard },
+                { id: 'cod',    label: 'Cash on Delivery', sub: 'Pay when order arrives', Icon: Banknote },
+              ] as const).map(({ id, label, sub, Icon }) => {
+                const active = paymentMethod === id
+                return (
+                  <button
+                    key={id}
+                    type="button"
+                    onClick={() => setPaymentMethod(id)}
+                    className="flex items-start gap-3 px-4 py-3.5 rounded-xl text-left transition-all"
+                    style={{
+                      background: active ? 'rgba(232,25,44,0.08)' : 'var(--bg-raised)',
+                      border: `1.5px solid ${active ? 'var(--red)' : 'var(--border)'}`,
+                    }}
+                  >
+                    <div
+                      className="w-5 h-5 rounded-full border-2 flex items-center justify-center mt-0.5 shrink-0"
+                      style={{ borderColor: active ? 'var(--red)' : 'var(--border)' }}
+                    >
+                      {active && (
+                        <div className="w-2.5 h-2.5 rounded-full" style={{ background: 'var(--red)' }} />
+                      )}
+                    </div>
+                    <div>
+                      <div className="flex items-center gap-1.5 mb-0.5">
+                        <Icon size={12} style={{ color: active ? 'var(--red)' : 'var(--fg-muted)' }} />
+                        <span className="text-[13px] font-semibold" style={{ color: 'var(--fg)', fontFamily: 'var(--font-inter)' }}>
+                          {label}
+                        </span>
+                      </div>
+                      <span className="text-[11px]" style={{ color: 'var(--fg-muted)', fontFamily: 'var(--font-inter)' }}>
+                        {sub}
+                      </span>
+                    </div>
+                  </button>
+                )
+              })}
+            </div>
+
+            {paymentMethod === 'cod' && (
+              <div
+                className="flex items-start gap-2 mt-3 rounded-xl px-3 py-2.5"
+                style={{ background: 'rgba(245,197,24,0.07)', border: '1px solid rgba(245,197,24,0.2)' }}
+              >
+                <span className="text-[11px] leading-relaxed" style={{ color: 'var(--gold)', fontFamily: 'var(--font-inter)' }}>
+                  ₹{grandTotal.toLocaleString('en-IN')} will be collected at the time of delivery. Please keep exact change ready.
+                </span>
+              </div>
+            )}
           </div>
 
-          {/* ── RIGHT: SUMMARY + PAY ── */}
+          {/* ── RIGHT: SUMMARY + PAY BUTTON ── */}
           <div className="px-5 py-7 flex flex-col gap-5">
             <p
               className="text-[11px] font-semibold uppercase tracking-[0.1em]"
@@ -316,7 +393,9 @@ export default function CheckoutPage() {
               className="w-full py-3.5 rounded-xl text-[14px] font-bold flex items-center justify-center gap-2 transition-all hover:opacity-90 disabled:opacity-50"
               style={{ background: 'var(--red)', color: '#fff', fontFamily: 'var(--font-inter)' }}
             >
-              {loading ? 'Processing…' : (
+              {loading ? 'Processing…' : paymentMethod === 'cod' ? (
+                <>Place Order <ArrowRight size={14} /></>
+              ) : (
                 <>Pay {formatPrice(grandTotal)} <ArrowRight size={14} /></>
               )}
             </button>
@@ -324,7 +403,9 @@ export default function CheckoutPage() {
             <div className="flex items-center justify-center gap-1.5">
               <ShieldCheck size={11} style={{ color: 'var(--fg-sub)' }} />
               <p className="text-[11px]" style={{ color: 'var(--fg-sub)', fontFamily: 'var(--font-inter)' }}>
-                Razorpay · UPI · Cards · Wallets
+                {paymentMethod === 'cod'
+                  ? 'COD · Pay on delivery · No advance required'
+                  : 'Razorpay · UPI · Cards · Wallets'}
               </p>
             </div>
           </div>

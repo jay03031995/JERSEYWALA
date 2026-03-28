@@ -4,16 +4,14 @@ import { createAdminClient } from '@/lib/supabase/admin'
 import { generateOrderNumber } from '@/lib/utils'
 
 export async function POST(request: NextRequest) {
-  // Read user from session (may be null for guest)
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
-
-  // Use service-role client to bypass RLS for order creation
   const admin = createAdminClient()
 
   const body = await request.json()
-  const { items, address, subtotal, shipping, total } = body
+  const { items, address, subtotal, shipping, total, paymentMethod = 'online' } = body
 
+  const isCOD = paymentMethod === 'cod'
   const orderNumber = generateOrderNumber()
 
   const { data: order, error } = await admin
@@ -21,8 +19,8 @@ export async function POST(request: NextRequest) {
     .insert({
       order_number: orderNumber,
       user_id: user?.id ?? null,
-      status: 'pending',
-      payment_status: 'pending',
+      status: isCOD ? 'confirmed' : 'pending',
+      payment_status: isCOD ? 'cod' : 'pending',
       subtotal,
       shipping_cost: shipping,
       discount_amount: 0,
@@ -33,11 +31,8 @@ export async function POST(request: NextRequest) {
     .select()
     .single()
 
-  if (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 })
-  }
+  if (error) return NextResponse.json({ error: error.message }, { status: 500 })
 
-  // Insert order items
   const orderItems = items.map((item: {
     productId: string
     variantId: string
