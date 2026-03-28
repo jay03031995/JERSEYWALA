@@ -16,15 +16,28 @@ export default function LoginPage() {
     e.preventDefault()
     setLoading(true)
     const supabase = createClient()
-    const { error } = await supabase.auth.signInWithPassword({ email, password })
-    setLoading(false)
+    const { data, error } = await supabase.auth.signInWithPassword({ email, password })
     if (error) {
+      setLoading(false)
       toast.error(error.message)
-    } else {
-      toast.success('Welcome back!')
-      router.push('/')
-      router.refresh()
+      return
     }
+    toast.success('Welcome back!')
+    // Check role — redirect admin to dashboard
+    if (data.user) {
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('role')
+        .eq('id', data.user.id)
+        .single()
+      if (profile && ['admin', 'super_admin'].includes(profile.role)) {
+        router.push('/admin')
+        router.refresh()
+        return
+      }
+    }
+    router.push('/')
+    router.refresh()
   }
 
   return (
