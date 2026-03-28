@@ -12,10 +12,11 @@ async function verifyAdmin() {
   return user
 }
 
-export async function PATCH(req: NextRequest, { params }: { params: { id: string } }) {
+export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const user = await verifyAdmin()
   if (!user) return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
 
+  const { id } = await params
   const body = await req.json()
   const admin = createAdminClient()
 
@@ -31,16 +32,16 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
   if ('cost_price' in body) update.cost_price = body.cost_price ? Number(body.cost_price) : null
   update.updated_at = new Date().toISOString()
 
-  const { error } = await admin.from('products').update(update).eq('id', params.id)
+  const { error } = await admin.from('products').update(update).eq('id', id)
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
 
   // Replace images if provided
   if (body.images !== undefined) {
-    await admin.from('product_images').delete().eq('product_id', params.id)
+    await admin.from('product_images').delete().eq('product_id', id)
     for (let i = 0; i < body.images.length; i++) {
       if (!body.images[i]) continue
       await admin.from('product_images').insert({
-        product_id: params.id,
+        product_id: id,
         url: body.images[i],
         alt_text: body.name || '',
         position: i,
@@ -51,14 +52,14 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
 
   // Replace variants if provided
   if (body.variants !== undefined) {
-    await admin.from('product_variants').delete().eq('product_id', params.id)
+    await admin.from('product_variants').delete().eq('product_id', id)
     for (const v of body.variants) {
       if (!v.size) continue
       await admin.from('product_variants').insert({
-        product_id: params.id,
+        product_id: id,
         size: v.size,
         stock_quantity: Number(v.stock_quantity) || 0,
-        sku: v.sku || `${body.slug || params.id}-${v.size.toLowerCase()}`,
+        sku: v.sku || `${body.slug || id}-${v.size.toLowerCase()}`,
         additional_price: Number(v.additional_price) || 0,
       })
     }
@@ -67,14 +68,15 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
   return NextResponse.json({ success: true })
 }
 
-export async function DELETE(_req: NextRequest, { params }: { params: { id: string } }) {
+export async function DELETE(_req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const user = await verifyAdmin()
   if (!user) return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
 
+  const { id } = await params
   const admin = createAdminClient()
-  await admin.from('product_images').delete().eq('product_id', params.id)
-  await admin.from('product_variants').delete().eq('product_id', params.id)
-  const { error } = await admin.from('products').delete().eq('id', params.id)
+  await admin.from('product_images').delete().eq('product_id', id)
+  await admin.from('product_variants').delete().eq('product_id', id)
+  const { error } = await admin.from('products').delete().eq('id', id)
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
 
   return NextResponse.json({ success: true })
