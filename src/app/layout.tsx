@@ -1,14 +1,14 @@
 import type { Metadata } from 'next'
-import { Oswald, Inter } from 'next/font/google'
+import { Barlow_Condensed, Inter } from 'next/font/google'
 import Script from 'next/script'
 import './globals.css'
 import ConditionalLayout from '@/components/layout/ConditionalLayout'
 import { Toaster } from 'react-hot-toast'
 
-const oswald = Oswald({
+const barlowCondensed = Barlow_Condensed({
   subsets: ['latin'],
-  weight: ['400', '500', '600', '700'],
-  variable: '--font-oswald',
+  weight: ['400', '500', '600', '700', '800', '900'],
+  variable: '--font-oswald',  // keep same CSS var so all existing usage auto-updates
 })
 
 const inter = Inter({
@@ -149,7 +149,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           crossOrigin="anonymous"
         />
       </head>
-      <body className={`${oswald.variable} ${inter.variable} min-h-screen flex flex-col`}>
+      <body className={`${barlowCondensed.variable} ${inter.variable} min-h-screen flex flex-col`}>
         <ConditionalLayout>{children}</ConditionalLayout>
         {/* Google AdSense — loaded after hydration to avoid script tag conflict */}
         <Script
