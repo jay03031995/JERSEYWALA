@@ -11,11 +11,11 @@ interface Message {
 
 const QUICK_REPLIES = [
   'Track my order',
+  'Search jerseys',
   'Shipping time?',
   'Return policy',
   'Size guide',
   'Payment methods',
-  'Customization',
 ]
 
 const BOT_RESPONSES: { patterns: RegExp[]; reply: string }[] = [
@@ -53,7 +53,11 @@ const BOT_RESPONSES: { patterns: RegExp[]; reply: string }[] = [
   },
   {
     patterns: [/cod/i, /cash/i, /on delivery/i],
-    reply: '💵 We currently don\'t offer Cash on Delivery — but we accept all major UPI apps (GPay, PhonePe, Paytm) which are just as easy! We\'re working on adding COD soon.',
+    reply: '💵 Yes! We offer **Cash on Delivery** across India. Just select "Cash on Delivery" at checkout — pay when your jersey arrives!',
+  },
+  {
+    patterns: [/search/i, /find/i, /look.*jersey/i, /jersey.*search/i],
+    reply: '🔍 Sure! Tell me what you\'re looking for — e.g. "CSK jersey", "Dhoni jersey", "football Real Madrid" — and I\'ll search our store for you!',
   },
   {
     patterns: [/football/i, /soccer/i, /premier/i, /la liga/i, /bundesliga/i],
@@ -69,7 +73,8 @@ const BOT_RESPONSES: { patterns: RegExp[]; reply: string }[] = [
   },
 ]
 
-const ORDER_PATTERN = /\b(JW[-–]?\d{4,}|\d{6,})\b/i
+const ORDER_PATTERN = /\b(JW[-–]?\d{4,}|SK[-–]?\d{4,}|\d{10,})\b/i
+const SEARCH_PATTERN = /\b(csk|mi\b|rcb|kkr|srh|dc\b|pbks|rr\b|gt\b|lsg|mumbai|chennai|kolkata|delhi|punjab|rajasthan|sunrisers|gujarat|lucknow|dhoni|rohit|kohli|jadeja|football|cricket|ipl|jersey|replica|official|fan edition)\b/i
 const DEFAULT_REPLY = "I'm not sure about that yet — but our team is here to help! Email us at **support@jerseywala.com** or try one of the quick options below."
 
 function getBotReply(input: string): string {
@@ -157,7 +162,25 @@ export default function Chatbot() {
       }
     }
 
-    setTimeout(() => addBotMessage(getBotReply(text)), 700)
+    // Product search — if message looks like a product query
+    const botReply = getBotReply(text)
+    if (botReply === DEFAULT_REPLY && SEARCH_PATTERN.test(text)) {
+      try {
+        const res = await fetch(`/api/chatbot/search?q=${encodeURIComponent(text.trim())}`)
+        if (res.ok) {
+          const { products } = await res.json()
+          if (products?.length > 0) {
+            const list = products.slice(0, 4).map((p: { name: string; base_price: number; slug: string }) =>
+              `• **${p.name}** — ₹${p.base_price} → [View](/shop/${p.slug})`
+            ).join('\n')
+            setTimeout(() => addBotMessage(`🔍 Found these jerseys for you:\n\n${list}`), 700)
+            return
+          }
+        }
+      } catch { /* fallthrough */ }
+    }
+
+    setTimeout(() => addBotMessage(botReply), 700)
   }
 
   const handleSubmit = (e: React.FormEvent) => {

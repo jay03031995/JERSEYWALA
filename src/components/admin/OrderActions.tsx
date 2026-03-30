@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import toast from 'react-hot-toast'
-import { MapPin, RefreshCw, ExternalLink } from 'lucide-react'
+import { MapPin, RefreshCw, ExternalLink, Truck, PackageCheck, CheckCircle2 } from 'lucide-react'
 import type { OrderStatus } from '@/types/database'
 import PrintInvoice from './PrintInvoice'
 
@@ -23,6 +23,22 @@ interface TrackingResult {
   mock?: boolean
   error?: string
 }
+
+// Map Delhivery statuses → our order statuses
+function mapDelhiveryStatus(dStatus: string): OrderStatus | null {
+  const s = dStatus.toLowerCase()
+  if (s.includes('delivered')) return 'delivered'
+  if (s.includes('out for delivery') || s.includes('out_for_delivery')) return 'out_for_delivery'
+  if (s.includes('transit') || s.includes('shipped') || s.includes('dispatch')) return 'shipped'
+  if (s.includes('picked') || s.includes('manifested') || s.includes('processing')) return 'processing'
+  return null
+}
+
+const QUICK_STATUSES: { label: string; status: OrderStatus; icon: React.ReactNode; color: string }[] = [
+  { label: 'Dispatched', status: 'shipped', icon: <Truck size={12} />, color: 'var(--gold)' },
+  { label: 'Out for Delivery', status: 'out_for_delivery', icon: <PackageCheck size={12} />, color: 'var(--blue)' },
+  { label: 'Delivered', status: 'delivered', icon: <CheckCircle2 size={12} />, color: 'var(--green)' },
+]
 
 export default function OrderActions({
   orderId, currentStatus, currentTracking, allStatuses, order,
@@ -60,12 +76,12 @@ export default function OrderActions({
   const [trackingData, setTrackingData] = useState<TrackingResult | null>(null)
   const [trackingLoading, setTrackingLoading] = useState(false)
 
-  const handleSave = async () => {
+  const saveOrder = async (newStatus: OrderStatus, newTracking?: string) => {
     setSaving(true)
     const res = await fetch(`/api/admin/orders/${orderId}`, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ status, tracking_number: tracking }),
+      body: JSON.stringify({ status: newStatus, tracking_number: newTracking ?? tracking }),
     })
     setSaving(false)
     if (res.ok) {
@@ -76,17 +92,27 @@ export default function OrderActions({
     }
   }
 
+  const handleQuickStatus = (s: OrderStatus) => {
+    setStatus(s)
+    saveOrder(s)
+  }
+
   const fetchTracking = async () => {
-    if (!tracking.trim()) {
-      toast.error('Enter a tracking number first')
-      return
-    }
+    if (!tracking.trim()) { toast.error('Enter a tracking number first'); return }
     setTrackingLoading(true)
     try {
       const res = await fetch(`/api/admin/delhivery?awb=${encodeURIComponent(tracking.trim())}`)
       const data = await res.json()
       if (data.error) throw new Error(data.error)
       setTrackingData(data)
+
+      // Auto-sync status from Delhivery
+      const mapped = mapDelhiveryStatus(data.status)
+      if (mapped && mapped !== status) {
+        setStatus(mapped)
+        await saveOrder(mapped)
+        toast.success(`Status auto-updated to "${mapped.replace(/_/g, ' ')}" from Delhivery`)
+      }
     } catch (err) {
       toast.error(String(err) || 'Failed to fetch tracking')
     } finally {
@@ -98,7 +124,7 @@ export default function OrderActions({
     <div className="space-y-4">
       {/* Update Order Card */}
       <div
-        className="rounded-2xl p-5 h-fit space-y-5"
+        className="rounded-2xl p-5 h-fit space-y-4"
         style={{ background: 'var(--bg-card)', border: '1px solid var(--border)' }}
       >
         <p
@@ -108,7 +134,33 @@ export default function OrderActions({
           Update Order
         </p>
 
-        {/* Status */}
+        {/* Quick status buttons */}
+        <div>
+          <label className="block text-[11px] font-medium uppercase tracking-[0.04em] mb-2"
+            style={{ color: 'var(--fg-muted)', fontFamily: 'var(--font-inter)' }}>
+            Quick Actions
+          </label>
+          <div className="flex flex-wrap gap-2">
+            {QUICK_STATUSES.map(({ label, status: s, icon, color }) => (
+              <button
+                key={s}
+                onClick={() => handleQuickStatus(s)}
+                disabled={saving || status === s}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[11px] font-medium transition-all disabled:opacity-40"
+                style={{
+                  background: status === s ? `${color}22` : 'var(--bg-raised)',
+                  border: `1px solid ${status === s ? color : 'var(--border)'}`,
+                  color: status === s ? color : 'var(--fg-muted)',
+                  fontFamily: 'var(--font-inter)',
+                }}
+              >
+                {icon} {label}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Full status dropdown */}
         <div>
           <label
             className="block text-[11px] font-medium uppercase tracking-[0.04em] mb-1.5"
@@ -135,7 +187,7 @@ export default function OrderActions({
           </select>
         </div>
 
-        {/* Tracking */}
+        {/* Tracking + Delhivery */}
         <div>
           <label
             className="block text-[11px] font-medium uppercase tracking-[0.04em] mb-1.5"
@@ -162,17 +214,20 @@ export default function OrderActions({
             <button
               onClick={fetchTracking}
               disabled={trackingLoading || !tracking.trim()}
-              title="Track on Delhivery"
+              title="Track on Delhivery & sync status"
               className="px-3 rounded-xl flex items-center justify-center transition-opacity hover:opacity-80 disabled:opacity-40"
               style={{ background: 'var(--bg-raised)', border: '1px solid var(--border)', color: 'var(--fg-muted)' }}
             >
               <RefreshCw size={13} className={trackingLoading ? 'animate-spin' : ''} />
             </button>
           </div>
+          <p className="text-[10px] mt-1" style={{ color: 'var(--fg-sub)', fontFamily: 'var(--font-inter)' }}>
+            Clicking ↻ fetches live status and auto-updates order status
+          </p>
         </div>
 
         <button
-          onClick={handleSave}
+          onClick={() => saveOrder(status)}
           disabled={saving}
           className="w-full py-2.5 rounded-xl text-[13px] font-bold transition-opacity hover:opacity-90 disabled:opacity-50"
           style={{ background: 'var(--red)', color: '#fff', fontFamily: 'var(--font-inter)' }}
@@ -212,7 +267,6 @@ export default function OrderActions({
             </a>
           </div>
 
-          {/* Current status banner */}
           <div
             className="flex items-center gap-2 px-3 py-2.5 rounded-xl mb-4"
             style={{ background: 'rgba(57,255,20,0.07)', border: '1px solid rgba(57,255,20,0.15)' }}
@@ -235,7 +289,6 @@ export default function OrderActions({
             </div>
           </div>
 
-          {/* Events timeline */}
           <div className="space-y-0">
             {trackingData.events.map((ev, i) => (
               <div key={i} className="flex gap-3">
