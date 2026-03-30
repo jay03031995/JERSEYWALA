@@ -120,7 +120,7 @@ export default function Navbar() {
         </Link>
 
         {/* Desktop Nav */}
-        <nav className="hidden lg:flex items-center gap-0.5 flex-1">
+        <nav className="hidden xl:flex items-center gap-0.5 flex-1">
           {NAV.map((item) =>
             item.children ? (
               <div key={item.label} className="relative group">
@@ -161,7 +161,8 @@ export default function Navbar() {
           )}
         </nav>
 
-        <div className="flex-1" />
+        {/* Spacer: pushes actions right when desktop nav is hidden */}
+        <div className="flex-1 xl:hidden" />
 
         {/* Actions */}
         <div className="flex items-center gap-0.5">
@@ -198,7 +199,7 @@ export default function Navbar() {
           </Link>
 
           <button
-            className="lg:hidden p-2 rounded-lg transition-colors ml-1"
+            className="xl:hidden p-2 rounded-lg transition-colors ml-1"
             style={{ color: 'var(--fg-muted)' }}
             onClick={() => setMenuOpen(!menuOpen)}
           >
@@ -234,19 +235,24 @@ export default function Navbar() {
 
       {/* Mobile Menu */}
       {menuOpen && (
-        <div className="lg:hidden px-4 py-3 space-y-0.5" style={{ borderTop: '1px solid var(--border)', background: 'var(--bg-card)' }}>
-          {NAV.flatMap((item) =>
-            item.children
-              ? item.children.map((c) => (
-                  <Link key={c.href} href={c.href} className="block px-3 py-2.5 rounded-lg text-[14px]" style={{ color: 'var(--fg-muted)' }}>
+        <div className="xl:hidden px-4 py-3 space-y-1" style={{ borderTop: '1px solid var(--border)', background: 'var(--bg-card)', maxHeight: '70vh', overflowY: 'auto' }}>
+          {NAV.map((item) =>
+            item.children ? (
+              <div key={item.label}>
+                <p className="px-3 pt-3 pb-1 text-[10px] font-bold uppercase tracking-[0.08em]" style={{ color: 'var(--fg-sub)', fontFamily: 'var(--font-inter)' }}>
+                  {item.label}
+                </p>
+                {item.children.map((c) => (
+                  <Link key={c.href} href={c.href} className="block px-3 py-2 rounded-lg text-[13px]" style={{ color: 'var(--fg-muted)', fontFamily: 'var(--font-inter)' }}>
                     {c.label}
                   </Link>
-                ))
-              : [
-                  <Link key={item.href} href={item.href!} className="block px-3 py-2.5 rounded-lg text-[14px] font-medium" style={{ color: item.accent ? 'var(--red)' : 'var(--fg)' }}>
-                    {item.label}
-                  </Link>,
-                ]
+                ))}
+              </div>
+            ) : (
+              <Link key={item.href} href={item.href!} className="block px-3 py-2.5 rounded-lg text-[14px] font-medium" style={{ color: item.accent ? 'var(--red)' : 'var(--fg)', fontFamily: 'var(--font-inter)' }}>
+                {item.label}
+              </Link>
+            )
           )}
         </div>
       )}

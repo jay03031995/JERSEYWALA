@@ -18,13 +18,27 @@ export default async function TeamPage({ params }: Props) {
 
   if (!team) notFound()
 
-  const { data: productsRaw } = await supabase
+  // Primary query: by team_id relationship
+  const { data: byTeamId } = await supabase
     .from('products')
     .select(`*, team:teams(*), images:product_images(*), variants:product_variants(*)`)
     .eq('is_active', true)
     .eq('team_id', team.id)
     .order('created_at', { ascending: false })
-  const products = productsRaw ?? []
+
+  // Fallback: products whose slug or name contains the team slug/short_name
+  // (catches products uploaded without team_id set)
+  let products = byTeamId ?? []
+  if (products.length === 0 && team.short_name) {
+    const pattern = team.short_name.toLowerCase()
+    const { data: byName } = await supabase
+      .from('products')
+      .select(`*, team:teams(*), images:product_images(*), variants:product_variants(*)`)
+      .eq('is_active', true)
+      .or(`slug.ilike.%${pattern}%,name.ilike.%${pattern}%`)
+      .order('created_at', { ascending: false })
+    products = byName ?? []
+  }
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 py-10">
