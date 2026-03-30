@@ -2,6 +2,7 @@ import { createAdminClient } from '@/lib/supabase/admin'
 import { formatPrice } from '@/lib/utils'
 import Link from 'next/link'
 import { Plus } from 'lucide-react'
+import ProductImportExport from '@/components/admin/ProductImportExport'
 
 export default async function AdminProductsPage() {
   const admin = createAdminClient()
@@ -11,8 +12,8 @@ export default async function AdminProductsPage() {
     .order('created_at', { ascending: false })
 
   return (
-    <div className="px-6 py-8 max-w-6xl mx-auto">
-      <div className="flex items-center justify-between mb-6">
+    <div className="px-4 sm:px-6 py-8 max-w-6xl mx-auto">
+      <div className="flex flex-wrap items-center justify-between gap-3 mb-6">
         <div>
           <h1
             className="text-[28px] font-black"
@@ -24,13 +25,16 @@ export default async function AdminProductsPage() {
             {products?.length ?? 0} products
           </p>
         </div>
-        <Link
-          href="/admin/products/new"
-          className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-[13px] font-bold transition-opacity hover:opacity-90"
-          style={{ background: 'var(--red)', color: '#fff', fontFamily: 'var(--font-inter)' }}
-        >
-          <Plus size={14} /> Add Product
-        </Link>
+        <div className="flex items-center gap-2">
+          <ProductImportExport />
+          <Link
+            href="/admin/products/new"
+            className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-[13px] font-bold transition-opacity hover:opacity-90"
+            style={{ background: 'var(--red)', color: '#fff', fontFamily: 'var(--font-inter)' }}
+          >
+            <Plus size={14} /> Add Product
+          </Link>
+        </div>
       </div>
 
       <div

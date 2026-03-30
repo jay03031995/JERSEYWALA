@@ -21,12 +21,13 @@ const ALL_STATUSES: OrderStatus[] = [
   'out_for_delivery', 'delivered', 'cancelled', 'returned', 'refunded',
 ]
 
-export default async function AdminOrderDetailPage({ params }: { params: { id: string } }) {
+export default async function AdminOrderDetailPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params
   const admin = createAdminClient()
   const { data: order } = await admin
     .from('orders')
     .select('*, items:order_items(*)')
-    .eq('id', params.id)
+    .eq('id', id)
     .single()
 
   if (!order) notFound()

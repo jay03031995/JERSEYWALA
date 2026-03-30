@@ -1,8 +1,8 @@
 'use client'
 
 import { useRouter, useSearchParams } from 'next/navigation'
-import { useCallback } from 'react'
-import { Check, X } from 'lucide-react'
+import { useCallback, useState } from 'react'
+import { Check, X, SlidersHorizontal } from 'lucide-react'
 
 const SPORTS   = ['Football', 'Cricket', 'IPL']
 const EDITIONS = ['official', 'fan_edition', 'replica']
@@ -65,6 +65,7 @@ function CheckRow({
 export default function FilterSidebar() {
   const router = useRouter()
   const params = useSearchParams()
+  const [open, setOpen] = useState(false)
 
   const update = useCallback(
     (key: string, value: string) => {
@@ -88,10 +89,20 @@ export default function FilterSidebar() {
   )
 
   return (
-    <aside
-      className="w-56 shrink-0 rounded-2xl p-5 sticky top-20"
-      style={{ background: 'var(--bg-card)', border: '1px solid var(--border)' }}
-    >
+    <aside className="w-full lg:w-56 shrink-0">
+      {/* Mobile toggle */}
+      <button
+        className="lg:hidden flex items-center gap-2 px-4 py-2 rounded-xl text-[13px] font-medium mb-3 w-full"
+        style={{ background: 'var(--bg-card)', border: '1px solid var(--border)', color: 'var(--fg-muted)', fontFamily: 'var(--font-inter)' }}
+        onClick={() => setOpen(!open)}
+      >
+        <SlidersHorizontal size={14} />
+        Filters {hasFilters ? `(active)` : ''} {open ? '▲' : '▼'}
+      </button>
+
+      <div className={`${open ? 'block' : 'hidden'} lg:block rounded-2xl p-5 lg:sticky lg:top-20`}
+        style={{ background: 'var(--bg-card)', border: '1px solid var(--border)' }}
+      >
       {/* Header */}
       <div className="flex items-center justify-between mb-5">
         <h2
@@ -185,6 +196,7 @@ export default function FilterSidebar() {
             )
           })}
         </div>
+      </div>
       </div>
     </aside>
   )

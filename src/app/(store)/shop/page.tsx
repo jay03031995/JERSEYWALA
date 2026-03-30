@@ -54,7 +54,7 @@ export default async function ShopPage({ searchParams }: ShopPageProps) {
           </p>
         </div>
 
-        <div className="flex gap-8 items-start">
+        <div className="flex flex-col lg:flex-row gap-6 lg:gap-8 items-start">
           <Suspense fallback={null}>
             <FilterSidebar />
           </Suspense>
