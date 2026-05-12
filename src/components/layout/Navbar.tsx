@@ -66,6 +66,8 @@ const DEFAULT_TICKER = [
   'FIFA 2026 jerseys now available',
 ]
 
+type NavItem = { label: string; href?: string; accent?: boolean; children?: { label: string; href: string }[] }
+
 export default function Navbar() {
   const pathname = usePathname()
   const [menuOpen, setMenuOpen] = useState(false)
@@ -73,6 +75,7 @@ export default function Navbar() {
   const [searchQuery, setSearchQuery] = useState('')
   const [scrolled, setScrolled] = useState(false)
   const [tickerMessages, setTickerMessages] = useState<string[]>(DEFAULT_TICKER)
+  const [navOverride, setNavOverride] = useState<NavItem[] | null>(null)
 
   useEffect(() => {
     let cancelled = false
@@ -83,12 +86,21 @@ export default function Navbar() {
         if (Array.isArray(data.ticker_messages) && data.ticker_messages.length > 0) {
           setTickerMessages(data.ticker_messages)
         }
+        if (Array.isArray(data.nav_items) && data.nav_items.length > 0) {
+          setNavOverride(
+            (data.nav_items as Array<{ label?: string; href?: string; accent?: boolean }>)
+              .filter((n) => n.label && n.href)
+              .map((n) => ({ label: n.label!, href: n.href!, accent: !!n.accent })),
+          )
+        }
       })
       .catch(() => {})
     return () => {
       cancelled = true
     }
   }, [])
+
+  const navItems: NavItem[] = navOverride ?? NAV
 
   const openCart = useCartStore((s) => s.openCart)
   const cartCount = useCartStore((s) => s.itemCount())
@@ -147,7 +159,7 @@ export default function Navbar() {
 
         {/* Desktop Nav */}
         <nav className="hidden xl:flex items-center gap-0.5 flex-1">
-          {NAV.map((item) =>
+          {navItems.map((item) =>
             item.children ? (
               <div key={item.label} className="relative group">
                 <button
@@ -262,7 +274,7 @@ export default function Navbar() {
       {/* Mobile Menu */}
       {menuOpen && (
         <div className="xl:hidden px-4 py-3 space-y-1" style={{ borderTop: '1px solid var(--border)', background: 'var(--bg-card)', maxHeight: '70vh', overflowY: 'auto' }}>
-          {NAV.map((item) =>
+          {navItems.map((item) =>
             item.children ? (
               <div key={item.label}>
                 <p className="px-3 pt-3 pb-1 text-[10px] font-bold uppercase tracking-[0.08em]" style={{ color: 'var(--fg-sub)', fontFamily: 'var(--font-inter)' }}>

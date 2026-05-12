@@ -1,5 +1,11 @@
 import { createAdminClient } from '@/lib/supabase/admin'
 
+export type NavItem = {
+  label: string
+  href: string
+  accent?: boolean
+}
+
 export type StoreContent = {
   ticker_messages: string[]
   store_name: string
@@ -16,6 +22,7 @@ export type StoreContent = {
   whatsapp_number: string
   nav_sports: string
   nav_leagues: string
+  nav_items: NavItem[]
   discount_code_hint: string
 }
 
@@ -39,6 +46,7 @@ export const STORE_CONTENT_DEFAULTS: StoreContent = {
   whatsapp_number: '',
   nav_sports: 'Football, Cricket, IPL 2026',
   nav_leagues: 'Premier League, La Liga, IPL 2026, International Cricket',
+  nav_items: [],
   discount_code_hint: 'JERSEY10',
 }
 

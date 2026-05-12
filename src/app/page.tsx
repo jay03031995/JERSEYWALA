@@ -7,6 +7,8 @@ import CountdownTimer from '@/components/ui/CountdownTimer'
 import NewsletterForm from '@/components/ui/NewsletterForm'
 import AdBanner from '@/components/ui/AdBanner'
 import TeamPromoGrid from '@/components/ui/TeamPromoGrid'
+import HomeBanners from '@/components/banners/HomeBanners'
+import HomePopup from '@/components/banners/HomePopup'
 
 export const revalidate = 30
 
@@ -99,6 +101,8 @@ export default async function HomePage() {
 
   return (
     <div style={{ background: 'var(--bg)', color: 'var(--fg)' }}>
+      <HomePopup />
+      <HomeBanners />
 
       {/* ── HERO ── */}
       <section className="relative min-h-[92vh] flex items-center overflow-hidden">

@@ -12,6 +12,8 @@ const inputStyle = {
 }
 const labelStyle = { color: 'var(--fg-sub)', fontFamily: 'var(--font-inter)' }
 
+type NavItem = { label: string; href: string; accent?: boolean }
+
 const DEFAULTS = {
   ticker_messages: [
     'Free delivery on orders above ₹999',
@@ -32,6 +34,7 @@ const DEFAULTS = {
   whatsapp_number: '',
   nav_sports: 'Football, Cricket, IPL 2026',
   nav_leagues: 'Premier League, La Liga, IPL 2026, International Cricket',
+  nav_items: [] as NavItem[],
   discount_code_hint: 'JERSEY10',
 }
 
@@ -262,38 +265,116 @@ export default function StoreContentEditor() {
       {/* ── NAV ── */}
       {activeTab === 'nav' && (
         <div className="rounded-2xl p-5 space-y-4" style={{ background: 'var(--bg-card)', border: '1px solid var(--border)' }}>
-          <p className="text-[11px] font-bold uppercase tracking-wider" style={labelStyle}>Navigation Links</p>
-          <p className="text-[12px]" style={{ color: 'var(--fg-sub)', fontFamily: 'var(--font-inter)' }}>
-            Edit the comma-separated values below, then apply them to{' '}
-            <code className="px-1.5 py-0.5 rounded text-[11px]" style={{ background: 'var(--bg-raised)', color: 'var(--fg)' }}>
-              src/components/layout/Navbar.tsx
-            </code>
-          </p>
-          {([
-            { key: 'nav_sports', label: 'Sports Dropdown (comma separated)' },
-            { key: 'nav_leagues', label: 'Leagues Dropdown (comma separated)' },
-          ] as { key: keyof typeof DEFAULTS; label: string }[]).map(({ key, label }) => (
-            <div key={key}>
-              <label className="block text-[11px] font-medium mb-1.5 uppercase tracking-wider" style={labelStyle}>{label}</label>
-              <input
-                value={form[key] as string}
-                onChange={(e) => set(key, e.target.value)}
-                className="w-full px-3 py-2.5 rounded-xl text-[13px] outline-none"
-                style={inputStyle}
-              />
-              <div className="flex flex-wrap gap-1.5 mt-2">
-                {(form[key] as string).split(',').filter(Boolean).map((item) => (
+          <div>
+            <p className="text-[11px] font-bold uppercase tracking-wider" style={labelStyle}>Top Menu Items</p>
+            <p className="text-[12px] mt-1" style={{ color: 'var(--fg-sub)', fontFamily: 'var(--font-inter)' }}>
+              These render on the storefront navbar. Leave empty to fall back to the built-in menu.
+            </p>
+          </div>
+
+          <div className="space-y-2">
+            {form.nav_items.map((item, i) => (
+              <div key={i} className="flex gap-2 items-center">
+                <input
+                  value={item.label}
+                  onChange={(e) =>
+                    setForm((f) => {
+                      const next = [...f.nav_items]
+                      next[i] = { ...next[i], label: e.target.value }
+                      return { ...f, nav_items: next }
+                    })
+                  }
+                  placeholder="Label (e.g. New In)"
+                  className="flex-1 px-3 py-2.5 rounded-xl text-[13px] outline-none"
+                  style={inputStyle}
+                />
+                <input
+                  value={item.href}
+                  onChange={(e) =>
+                    setForm((f) => {
+                      const next = [...f.nav_items]
+                      next[i] = { ...next[i], href: e.target.value }
+                      return { ...f, nav_items: next }
+                    })
+                  }
+                  placeholder="Link (e.g. /shop?new=true)"
+                  className="flex-1 px-3 py-2.5 rounded-xl text-[13px] outline-none"
+                  style={inputStyle}
+                />
+                <label
+                  className="flex items-center gap-1 text-[12px] px-2 py-1 rounded-lg cursor-pointer"
+                  style={{ background: 'var(--bg-raised)', border: '1px solid var(--border)', color: 'var(--fg-muted)' }}
+                >
+                  <input
+                    type="checkbox"
+                    checked={!!item.accent}
+                    onChange={(e) =>
+                      setForm((f) => {
+                        const next = [...f.nav_items]
+                        next[i] = { ...next[i], accent: e.target.checked }
+                        return { ...f, nav_items: next }
+                      })
+                    }
+                  />
+                  Accent
+                </label>
+                <button
+                  onClick={() =>
+                    setForm((f) => ({ ...f, nav_items: f.nav_items.filter((_, idx) => idx !== i) }))
+                  }
+                  className="px-2 py-1 rounded-lg text-[12px]"
+                  style={{ color: 'var(--red)' }}
+                >
+                  ✕
+                </button>
+              </div>
+            ))}
+            <button
+              onClick={() =>
+                setForm((f) => ({
+                  ...f,
+                  nav_items: [...f.nav_items, { label: '', href: '', accent: false }],
+                }))
+              }
+              className="text-[12px] font-medium px-3 py-1.5 rounded-lg"
+              style={{ background: 'var(--bg-raised)', border: '1px solid var(--border)', color: 'var(--fg-muted)', fontFamily: 'var(--font-inter)' }}
+            >
+              + Add Menu Item
+            </button>
+          </div>
+
+          {form.nav_items.length > 0 && (
+            <div className="rounded-xl p-4" style={{ background: 'var(--bg-raised)', border: '1px solid var(--border)' }}>
+              <p className="text-[10px] uppercase tracking-wider mb-3" style={labelStyle}>Preview</p>
+              <div className="flex flex-wrap gap-2">
+                {form.nav_items.filter((i) => i.label).map((i, idx) => (
                   <span
-                    key={item}
-                    className="px-2.5 py-1 rounded-full text-[11px]"
-                    style={{ background: 'var(--bg-raised)', color: 'var(--fg-muted)', border: '1px solid var(--border)', fontFamily: 'var(--font-inter)' }}
+                    key={idx}
+                    className="px-3 py-1.5 rounded-lg text-[12px] font-medium"
+                    style={{
+                      background: i.accent ? 'var(--red)' : 'var(--bg-card)',
+                      color: i.accent ? '#fff' : 'var(--fg)',
+                      border: '1px solid var(--border)',
+                      fontFamily: 'var(--font-inter)',
+                    }}
                   >
-                    {item.trim()}
+                    {i.label}
                   </span>
                 ))}
               </div>
             </div>
-          ))}
+          )}
+
+          <div className="pt-3" style={{ borderTop: '1px solid var(--border)' }}>
+            <p className="text-[11px] uppercase tracking-wider" style={labelStyle}>Manage hero banners and popups</p>
+            <a
+              href="/admin/popups"
+              className="inline-block mt-2 px-3 py-1.5 rounded-lg text-[12px] font-medium"
+              style={{ background: 'var(--bg-raised)', border: '1px solid var(--border)', color: 'var(--fg)', fontFamily: 'var(--font-inter)' }}
+            >
+              Open Popups & Banners →
+            </a>
+          </div>
         </div>
       )}
 
