@@ -41,11 +41,6 @@ export const metadata: Metadata = {
     follow: true,
     googleBot: { index: true, follow: true },
   },
-  icons: {
-    icon: '/favicon.ico',
-    shortcut: '/favicon.ico',
-    apple: '/favicon.ico',
-  },
   openGraph: {
     type: 'website',
     locale: 'en_IN',
@@ -87,7 +82,7 @@ const jsonLd = {
       url: SITE_URL,
       logo: {
         '@type': 'ImageObject',
-        url: `${SITE_URL}/favicon.ico`,
+        url: `${SITE_URL}/icon`,
       },
       sameAs: [
         'https://instagram.com/thejerseywala',
