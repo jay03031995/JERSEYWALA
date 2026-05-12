@@ -2,13 +2,14 @@ import { notFound } from 'next/navigation'
 import { createAdminClient } from '@/lib/supabase/admin'
 import ProductForm from '@/components/admin/ProductForm'
 
-export default async function EditProductPage({ params }: { params: { id: string } }) {
+export default async function EditProductPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params
   const admin = createAdminClient()
 
   const [{ data: product }, { data: teams }] = await Promise.all([
     admin.from('products')
       .select('*, images:product_images(*), variants:product_variants(*)')
-      .eq('id', params.id)
+      .eq('id', id)
       .single(),
     admin.from('teams').select('id, name, slug').order('name'),
   ])
