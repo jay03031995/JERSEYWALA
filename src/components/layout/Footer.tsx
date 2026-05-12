@@ -262,19 +262,24 @@ export default function Footer() {
 
       <div style={{ borderTop: '1px solid var(--border)' }} className="py-5">
         <div className="max-w-7xl mx-auto px-5 sm:px-8 flex flex-col sm:flex-row items-center justify-between gap-3">
-          <p className="text-[12px]" style={{ color: 'var(--fg-sub)', fontFamily: 'var(--font-inter)' }}>
-            © 2026 The Jersey Wala. All rights reserved.
-          </p>
+          <div className="text-[12px] text-center sm:text-left" style={{ color: 'var(--fg-sub)', fontFamily: 'var(--font-inter)' }}>
+            <p>© 2026 The Jersey Wala. All rights reserved.</p>
+            <p className="mt-1">Managed and hosted by Genesis Virtue LLP.</p>
+          </div>
           <div className="flex gap-5">
-            {['Privacy Policy', 'Terms', 'Sitemap'].map((item) => (
-              <a
-                key={item}
-                href="#"
+            {[
+              { label: 'Privacy Policy', href: '/privacy' },
+              { label: 'Terms', href: '/terms' },
+              { label: 'Sitemap', href: '/sitemap.xml' },
+            ].map((item) => (
+              <Link
+                key={item.href}
+                href={item.href}
                 className="text-[12px] transition-colors hover:text-white"
                 style={{ color: 'var(--fg-sub)', fontFamily: 'var(--font-inter)' }}
               >
-                {item}
-              </a>
+                {item.label}
+              </Link>
             ))}
           </div>
         </div>
