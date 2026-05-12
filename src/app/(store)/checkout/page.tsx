@@ -148,8 +148,13 @@ export default function CheckoutPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ amount: grandTotal, orderId }),
       })
-      const { razorpayOrderId, error: payErr } = await payRes.json()
-      if (payErr || !razorpayOrderId) throw new Error(payErr ?? 'Payment initiation failed')
+      const payText = await payRes.text()
+      let payJson: { razorpayOrderId?: string; error?: string } = {}
+      try { payJson = payText ? JSON.parse(payText) : {} } catch { /* non-JSON response */ }
+      const { razorpayOrderId, error: payErr } = payJson
+      if (payErr || !razorpayOrderId) {
+        throw new Error(payErr ?? `Payment initiation failed (HTTP ${payRes.status})`)
+      }
 
       const script = document.createElement('script')
       script.src = 'https://checkout.razorpay.com/v1/checkout.js'
