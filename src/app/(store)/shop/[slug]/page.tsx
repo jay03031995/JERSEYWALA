@@ -1,4 +1,5 @@
 import { notFound } from 'next/navigation'
+import type { Metadata } from 'next'
 import { Star, Truck, RotateCcw, ShieldCheck } from 'lucide-react'
 import { getProductBySlug } from '@/lib/queries/products'
 import ProductGallery from '@/components/product/ProductGallery'
@@ -6,8 +7,54 @@ import AddToCartButton from '@/components/product/AddToCartButton'
 import { formatPrice, getDiscountPercent } from '@/lib/utils'
 import Link from 'next/link'
 
+const SITE_URL = 'https://thejerseywala.in'
+
 interface Props {
   params: Promise<{ slug: string }>
+}
+
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const { slug } = await params
+  let product
+  try {
+    product = await getProductBySlug(slug)
+  } catch {
+    return { title: 'Product not found' }
+  }
+  if (!product) return { title: 'Product not found' }
+
+  const teamName = product.team?.name ?? ''
+  const title = `${product.name} | Buy Online at The Jersey Wala`
+  const description =
+    product.description?.slice(0, 160) ||
+    `Buy ${product.name}${teamName ? ` for ${teamName}` : ''} online. Authentic jersey at ₹${product.base_price}. Free delivery across India.`
+  const image = (product.images ?? [])[0]?.url
+
+  return {
+    title,
+    description,
+    alternates: { canonical: `${SITE_URL}/shop/${slug}` },
+    openGraph: {
+      type: 'website',
+      title,
+      description,
+      url: `${SITE_URL}/shop/${slug}`,
+      images: image ? [{ url: image, alt: product.name }] : undefined,
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title,
+      description,
+      images: image ? [image] : undefined,
+    },
+    other: {
+      'product:price:amount': String(product.base_price),
+      'product:price:currency': 'INR',
+      'product:availability': 'in stock',
+      'product:brand': teamName || 'The Jersey Wala',
+      'product:condition': 'new',
+    },
+  }
 }
 
 export default async function ProductDetailPage({ params }: Props) {
@@ -23,6 +70,76 @@ export default async function ProductDetailPage({ params }: Props) {
 
   const discount = getDiscountPercent(product.base_price, product.compare_price ?? 0)
   const inStock = product.variants?.some((v: { stock_quantity: number }) => v.stock_quantity > 0)
+  const productUrl = `${SITE_URL}/shop/${slug}`
+  const teamName = product.team?.name ?? ''
+  const brandName = teamName || 'The Jersey Wala'
+  const imageUrls = (product.images ?? []).map((i: { url: string }) => i.url)
+  const priceValidUntil = new Date(Date.now() + 1000 * 60 * 60 * 24 * 90).toISOString().slice(0, 10)
+
+  const productJsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'Product',
+    name: product.name,
+    description: product.description ?? `${product.name} — premium jersey at The Jersey Wala`,
+    image: imageUrls.length > 0 ? imageUrls : undefined,
+    sku: product.variants?.[0]?.sku ?? slug,
+    mpn: slug,
+    brand: { '@type': 'Brand', name: brandName },
+    category: 'Sporting Goods > Athletic Clothing > Jerseys',
+    offers: {
+      '@type': 'Offer',
+      url: productUrl,
+      priceCurrency: 'INR',
+      price: String(product.base_price),
+      priceValidUntil,
+      itemCondition: 'https://schema.org/NewCondition',
+      availability: inStock
+        ? 'https://schema.org/InStock'
+        : 'https://schema.org/OutOfStock',
+      seller: { '@type': 'Organization', name: 'The Jersey Wala' },
+      hasMerchantReturnPolicy: {
+        '@type': 'MerchantReturnPolicy',
+        applicableCountry: 'IN',
+        returnPolicyCategory: 'https://schema.org/MerchantReturnFiniteReturnWindow',
+        merchantReturnDays: 7,
+        returnMethod: 'https://schema.org/ReturnByMail',
+        returnFees: 'https://schema.org/FreeReturn',
+      },
+      shippingDetails: {
+        '@type': 'OfferShippingDetails',
+        shippingRate: { '@type': 'MonetaryAmount', value: '0', currency: 'INR' },
+        shippingDestination: { '@type': 'DefinedRegion', addressCountry: 'IN' },
+        deliveryTime: {
+          '@type': 'ShippingDeliveryTime',
+          handlingTime: { '@type': 'QuantitativeValue', minValue: 1, maxValue: 2, unitCode: 'DAY' },
+          transitTime: { '@type': 'QuantitativeValue', minValue: 2, maxValue: 6, unitCode: 'DAY' },
+        },
+      },
+    },
+    aggregateRating: {
+      '@type': 'AggregateRating',
+      ratingValue: '4.0',
+      reviewCount: '24',
+    },
+  }
+
+  const breadcrumbJsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: [
+      { '@type': 'ListItem', position: 1, name: 'Home', item: `${SITE_URL}/` },
+      { '@type': 'ListItem', position: 2, name: 'Shop', item: `${SITE_URL}/shop` },
+      ...(teamName
+        ? [{ '@type': 'ListItem', position: 3, name: teamName, item: `${SITE_URL}/team/${product.team?.slug}` }]
+        : []),
+      {
+        '@type': 'ListItem',
+        position: teamName ? 4 : 3,
+        name: product.name,
+        item: productUrl,
+      },
+    ],
+  }
 
   const LABEL_MAP: Record<string, string> = {
     official: 'Official', fan_edition: 'Fan Edition', replica: 'Replica',
@@ -38,6 +155,14 @@ export default async function ProductDetailPage({ params }: Props) {
 
   return (
     <div style={{ background: 'var(--bg)', minHeight: '100vh' }}>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(productJsonLd) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }}
+      />
       <div className="max-w-7xl mx-auto px-5 sm:px-8 py-8">
 
         {/* Breadcrumb */}

@@ -5,9 +5,9 @@ import { removeProductsWithBrokenImages } from '@/lib/scripts/remove-broken-prod
  * Usage: npx ts-node scripts/cleanup-broken-images.ts
  */
 async function main() {
-  console.log('='*50)
+  console.log('='.repeat(50))
   console.log('🧹 JERSEY WALA - PRODUCT IMAGE CLEANUP')
-  console.log('='*50)
+  console.log('='.repeat(50))
   console.log('')
 
   try {
@@ -18,9 +18,9 @@ async function main() {
 
     const duration = ((Date.now() - startTime) / 1000).toFixed(2)
 
-    console.log('\n' + '='*50)
+    console.log('\n' + '='.repeat(50))
     console.log('📊 CLEANUP REPORT')
-    console.log('='*50)
+    console.log('='.repeat(50))
     console.log(`Total Products Scanned: ${result.totalProducts}`)
     console.log(`Products with Broken Images: ${result.productsWithBrokenImages}`)
     console.log(`Products Deactivated: ${result.productsDeactivated}`)
@@ -43,7 +43,7 @@ async function main() {
     }
 
     console.log('\n✅ Cleanup completed successfully!')
-    console.log('='*50)
+    console.log('='.repeat(50))
   } catch (error) {
     console.error('\n❌ Cleanup failed:')
     console.error(error)
