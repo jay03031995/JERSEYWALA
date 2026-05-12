@@ -4,6 +4,7 @@ import { createAdminClient } from '@/lib/supabase/admin'
 const SITE_URL = 'https://thejerseywala.in'
 const SITE_NAME = 'The Jersey Wala'
 
+export const dynamic = 'force-dynamic'
 export const revalidate = 3600 // refresh hourly
 
 type ProductRow = {

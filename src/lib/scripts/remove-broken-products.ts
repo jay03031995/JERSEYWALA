@@ -1,9 +1,13 @@
-import { createClient } from '@supabase/supabase-js'
+import { createClient, type SupabaseClient } from '@supabase/supabase-js'
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
-const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!
-
-const supabase = createClient(supabaseUrl, supabaseServiceKey)
+function getSupabase(): SupabaseClient {
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL
+  const key = process.env.SUPABASE_SERVICE_ROLE_KEY
+  if (!url || !key) {
+    throw new Error('Supabase env vars are not configured')
+  }
+  return createClient(url, key)
+}
 
 interface Product {
   id: string
@@ -59,6 +63,7 @@ async function validateImageUrl(url: string, timeout = 5000): Promise<Validation
  * Get all active products with their images
  */
 async function getProductsWithImages(): Promise<Product[]> {
+  const supabase = getSupabase()
   const { data, error } = await supabase
     .from('products')
     .select(
@@ -80,6 +85,7 @@ async function getProductsWithImages(): Promise<Product[]> {
 async function deactivateProductsWithBrokenImages(productIds: string[]): Promise<void> {
   if (productIds.length === 0) return
 
+  const supabase = getSupabase()
   const { error } = await supabase
     .from('products')
     .update({ is_active: false, updated_at: new Date().toISOString() })
@@ -97,6 +103,7 @@ async function logBrokenImages(
   imageUrl: string,
   errorMessage: string
 ): Promise<void> {
+  const supabase = getSupabase()
   const { error } = await supabase.from('broken_product_images').insert({
     product_id: productId,
     image_id: imageId,
