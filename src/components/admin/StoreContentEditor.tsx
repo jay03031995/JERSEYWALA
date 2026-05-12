@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import toast from 'react-hot-toast'
 import { Save } from 'lucide-react'
 
@@ -38,7 +38,28 @@ const DEFAULTS = {
 export default function StoreContentEditor() {
   const [form, setForm] = useState(DEFAULTS)
   const [saving, setSaving] = useState(false)
+  const [loading, setLoading] = useState(true)
   const [activeTab, setActiveTab] = useState<'ticker' | 'store' | 'footer' | 'nav'>('ticker')
+
+  useEffect(() => {
+    let cancelled = false
+    ;(async () => {
+      try {
+        const res = await fetch('/api/admin/store-content', { cache: 'no-store' })
+        if (!res.ok) return
+        const data = await res.json()
+        if (cancelled) return
+        setForm({ ...DEFAULTS, ...data })
+      } catch {
+        // keep defaults
+      } finally {
+        if (!cancelled) setLoading(false)
+      }
+    })()
+    return () => {
+      cancelled = true
+    }
+  }, [])
 
   const set = (key: keyof typeof DEFAULTS, val: string) =>
     setForm((f) => ({ ...f, [key]: val }))
@@ -56,9 +77,24 @@ export default function StoreContentEditor() {
 
   const handleSave = async () => {
     setSaving(true)
-    await new Promise((r) => setTimeout(r, 600))
-    setSaving(false)
-    toast.success('Settings saved!')
+    try {
+      const res = await fetch('/api/admin/store-content', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(form),
+      })
+      const text = await res.text()
+      let json: { success?: boolean; error?: string } = {}
+      try { json = text ? JSON.parse(text) : {} } catch { /* non-JSON */ }
+      if (!res.ok || !json.success) {
+        throw new Error(json.error ?? `Save failed (HTTP ${res.status})`)
+      }
+      toast.success('Settings saved')
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Save failed')
+    } finally {
+      setSaving(false)
+    }
   }
 
   const TABS = [
@@ -265,12 +301,12 @@ export default function StoreContentEditor() {
       <div className="flex justify-end pb-8">
         <button
           onClick={handleSave}
-          disabled={saving}
+          disabled={saving || loading}
           className="flex items-center gap-2 px-6 py-2.5 rounded-xl text-[13px] font-bold transition-opacity hover:opacity-90 disabled:opacity-50"
           style={{ background: 'var(--red)', color: '#fff', fontFamily: 'var(--font-inter)' }}
         >
           <Save size={14} />
-          {saving ? 'Saving…' : 'Save Settings'}
+          {loading ? 'Loading…' : saving ? 'Saving…' : 'Save Settings'}
         </button>
       </div>
     </div>

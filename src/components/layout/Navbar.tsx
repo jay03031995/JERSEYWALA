@@ -60,12 +60,35 @@ function ThemeToggle() {
   )
 }
 
+const DEFAULT_TICKER = [
+  'Free delivery on orders above ₹999',
+  'Use code JERSEY10 for 10% off',
+  'FIFA 2026 jerseys now available',
+]
+
 export default function Navbar() {
   const pathname = usePathname()
   const [menuOpen, setMenuOpen] = useState(false)
   const [searchOpen, setSearchOpen] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
   const [scrolled, setScrolled] = useState(false)
+  const [tickerMessages, setTickerMessages] = useState<string[]>(DEFAULT_TICKER)
+
+  useEffect(() => {
+    let cancelled = false
+    fetch('/api/store-content')
+      .then((r) => (r.ok ? r.json() : null))
+      .then((data) => {
+        if (cancelled || !data) return
+        if (Array.isArray(data.ticker_messages) && data.ticker_messages.length > 0) {
+          setTickerMessages(data.ticker_messages)
+        }
+      })
+      .catch(() => {})
+    return () => {
+      cancelled = true
+    }
+  }, [])
 
   const openCart = useCartStore((s) => s.openCart)
   const cartCount = useCartStore((s) => s.itemCount())
@@ -91,14 +114,17 @@ export default function Navbar() {
       {/* Ticker strip */}
       <div className="overflow-hidden" style={{ background: 'var(--red)', height: '30px' }}>
         <div className="flex items-center h-full animate-[marquee_30s_linear_infinite] whitespace-nowrap gap-12 px-4">
-          {Array.from({ length: 4 }).flatMap((_, i) => [
-            <span key={`${i}-a`} className="text-white text-[11px] font-semibold tracking-[0.08em] uppercase">Free delivery on orders above ₹999</span>,
-            <span key={`${i}-b`} className="text-white/40 mx-4">·</span>,
-            <span key={`${i}-c`} className="text-white text-[11px] font-semibold tracking-[0.08em] uppercase">Use code JERSEY10 for 10% off</span>,
-            <span key={`${i}-d`} className="text-white/40 mx-4">·</span>,
-            <span key={`${i}-e`} className="text-white text-[11px] font-semibold tracking-[0.08em] uppercase">IPL 2026 jerseys now available</span>,
-            <span key={`${i}-f`} className="text-white/40 mx-4">·</span>,
-          ])}
+          {Array.from({ length: 4 }).flatMap((_, repeatIdx) =>
+            tickerMessages.flatMap((msg, msgIdx) => [
+              <span
+                key={`${repeatIdx}-${msgIdx}-text`}
+                className="text-white text-[11px] font-semibold tracking-[0.08em] uppercase"
+              >
+                {msg}
+              </span>,
+              <span key={`${repeatIdx}-${msgIdx}-sep`} className="text-white/40 mx-4">·</span>,
+            ]),
+          )}
         </div>
       </div>
 
