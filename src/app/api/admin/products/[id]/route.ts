@@ -1,6 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
+
+function revalidateStorefront(slug?: string | null) {
+  revalidatePath('/')
+  revalidatePath('/shop')
+  revalidatePath('/sitemap.xml')
+  if (slug) revalidatePath(`/shop/${slug}`)
+}
 
 async function verifyAdmin() {
   const supabase = await createClient()
@@ -65,6 +73,7 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
     }
   }
 
+  revalidateStorefront(body.slug ?? null)
   return NextResponse.json({ success: true })
 }
 
@@ -74,10 +83,12 @@ export async function DELETE(_req: NextRequest, { params }: { params: Promise<{ 
 
   const { id } = await params
   const admin = createAdminClient()
+  const { data: existing } = await admin.from('products').select('slug').eq('id', id).single()
   await admin.from('product_images').delete().eq('product_id', id)
   await admin.from('product_variants').delete().eq('product_id', id)
   const { error } = await admin.from('products').delete().eq('id', id)
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+  revalidateStorefront(existing?.slug ?? null)
 
   return NextResponse.json({ success: true })
 }

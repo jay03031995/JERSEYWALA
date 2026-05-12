@@ -8,7 +8,7 @@ import NewsletterForm from '@/components/ui/NewsletterForm'
 import AdBanner from '@/components/ui/AdBanner'
 import TeamPromoGrid from '@/components/ui/TeamPromoGrid'
 
-export const revalidate = 60
+export const revalidate = 30
 
 // Real MI jersey images from shop.mumbaiindians.com Shopify CDN
 const MI_HERO_IMAGE = 'https://cdn.shopify.com/s/files/1/0627/2938/8118/files/TP0293ID__RNVL_B.jpg?v=1772786445'

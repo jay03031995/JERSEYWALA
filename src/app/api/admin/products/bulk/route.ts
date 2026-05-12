@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 
@@ -60,10 +61,17 @@ export async function POST(req: NextRequest) {
   const admin = createAdminClient()
 
   if (action === 'delete') {
+    const { data: existing } = await admin.from('products').select('slug').in('id', ids)
     await admin.from('product_images').delete().in('product_id', ids)
     await admin.from('product_variants').delete().in('product_id', ids)
     const { error } = await admin.from('products').delete().in('id', ids)
     if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+    revalidatePath('/')
+    revalidatePath('/shop')
+    revalidatePath('/sitemap.xml')
+    for (const row of existing ?? []) {
+      if (row.slug) revalidatePath(`/shop/${row.slug}`)
+    }
     return NextResponse.json({ success: true, affected: ids.length })
   }
 
@@ -77,8 +85,15 @@ export async function POST(req: NextRequest) {
   }
 
   const patch = { ...updateMap[action], updated_at: new Date().toISOString() }
+  const { data: existing } = await admin.from('products').select('slug').in('id', ids)
   const { error } = await admin.from('products').update(patch).in('id', ids)
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
 
+  revalidatePath('/')
+  revalidatePath('/shop')
+  revalidatePath('/sitemap.xml')
+  for (const row of existing ?? []) {
+    if (row.slug) revalidatePath(`/shop/${row.slug}`)
+  }
   return NextResponse.json({ success: true, affected: ids.length })
 }

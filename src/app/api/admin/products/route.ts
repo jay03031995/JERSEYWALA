@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 
@@ -68,6 +69,11 @@ export async function POST(req: NextRequest) {
       })
     }
   }
+
+  revalidatePath('/')
+  revalidatePath('/shop')
+  revalidatePath('/sitemap.xml')
+  if (body.slug) revalidatePath(`/shop/${body.slug}`)
 
   return NextResponse.json({ success: true, id: product.id })
 }
