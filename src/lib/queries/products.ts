@@ -1,5 +1,12 @@
 import { createClient } from '@/lib/supabase/server'
 
+type ProductImage = { url?: string | null }
+
+function hasUsableImage<T extends { images?: ProductImage[] | null }>(p: T): boolean {
+  const imgs = p.images ?? []
+  return imgs.some((i) => typeof i?.url === 'string' && i.url.trim().length > 0)
+}
+
 export async function getProducts({
   sport,
   team,
@@ -17,6 +24,9 @@ export async function getProducts({
 } = {}) {
   const supabase = await createClient()
 
+  // Fetch a bit more than `limit` so the post-filter still returns enough rows
+  const fetchSize = limit * 2
+
   let query = supabase
     .from('products')
     .select(
@@ -32,7 +42,7 @@ export async function getProducts({
     )
     .eq('is_active', true)
     .order('created_at', { ascending: false })
-    .range(offset, offset + limit - 1)
+    .range(offset, offset + fetchSize - 1)
 
   if (featured) query = query.eq('is_featured', true)
   if (newArrival) query = query.eq('is_new_arrival', true)
@@ -40,7 +50,7 @@ export async function getProducts({
 
   const { data, error } = await query
   if (error) throw error
-  return data
+  return (data ?? []).filter(hasUsableImage).slice(0, limit)
 }
 
 export async function getProductBySlug(slug: string) {
@@ -82,8 +92,8 @@ export async function searchProducts(query: string, limit = 20) {
     .or(
       `name.ilike.%${query}%,player_name.ilike.%${query}%,description.ilike.%${query}%`
     )
-    .limit(limit)
+    .limit(limit * 2)
 
   if (error) throw error
-  return data
+  return (data ?? []).filter(hasUsableImage).slice(0, limit)
 }

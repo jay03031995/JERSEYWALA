@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import { Plus, Link2 } from 'lucide-react'
+import { Plus, Link2, Globe } from 'lucide-react'
 import { createAdminClient } from '@/lib/supabase/admin'
 import ProductImportExport from '@/components/admin/ProductImportExport'
 import ProductsAdminTable, { type ProductRow } from '@/components/admin/ProductsAdminTable'
@@ -45,6 +45,13 @@ export default async function AdminProductsPage() {
             style={{ background: 'var(--bg-raised)', border: '1px solid var(--border)', color: 'var(--fg)', fontFamily: 'var(--font-inter)' }}
           >
             <Link2 size={14} /> Import from URL
+          </Link>
+          <Link
+            href="/admin/products/import-site"
+            className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-[13px] font-bold transition-opacity hover:opacity-90"
+            style={{ background: 'var(--bg-raised)', border: '1px solid var(--border)', color: 'var(--fg)', fontFamily: 'var(--font-inter)' }}
+          >
+            <Globe size={14} /> Import full site
           </Link>
           <Link
             href="/admin/products/new"

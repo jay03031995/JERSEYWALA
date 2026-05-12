@@ -25,8 +25,11 @@ export default async function ShopPage({ searchParams }: ShopPageProps) {
 
   const { data: productsRaw } = await query
     .order('created_at', { ascending: false })
-    .limit(40)
-  const products = productsRaw ?? []
+    .limit(80)
+  const products = (productsRaw ?? []).filter((p) => {
+    const imgs = (p.images as { url?: string | null }[] | null) ?? []
+    return imgs.some((i) => typeof i?.url === 'string' && i.url.trim().length > 0)
+  }).slice(0, 40)
 
   const title = params.q
     ? `Search: "${params.q}"`
