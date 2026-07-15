@@ -35,11 +35,15 @@ export default function CountdownTimer({ targetDate }: CountdownTimerProps) {
   return (
     <div className="flex gap-3">
       {units.map(({ label, value }) => (
-        <div key={label} className="flex flex-col items-center bg-white/10 rounded-lg px-3 py-2 min-w-[56px]">
-          <span className="text-2xl font-bold tabular-nums">
+        <div
+          key={label}
+          className="flex flex-col items-center rounded-lg px-3 py-2 min-w-[56px]"
+          style={{ background: 'var(--bg-raised)', border: '1px solid var(--border)' }}
+        >
+          <span className="text-2xl font-bold tabular-nums" style={{ color: 'var(--fg)', fontFamily: 'var(--font-oswald)' }}>
             {String(value).padStart(2, '0')}
           </span>
-          <span className="text-xs opacity-70">{label}</span>
+          <span className="text-xs" style={{ color: 'var(--fg-muted)' }}>{label}</span>
         </div>
       ))}
     </div>

@@ -43,9 +43,9 @@ const NAV = [
 ]
 
 function ThemeToggle() {
-  const [theme, setTheme] = useState<'dark' | 'light'>('dark')
+  const [theme, setTheme] = useState<'dark' | 'light'>('light')
   useEffect(() => {
-    setTheme((document.documentElement.getAttribute('data-theme') as 'dark' | 'light') || 'dark')
+    setTheme((document.documentElement.getAttribute('data-theme') as 'dark' | 'light') || 'light')
   }, [])
   const toggle = () => {
     const next = theme === 'dark' ? 'light' : 'dark'
@@ -118,7 +118,7 @@ export default function Navbar() {
     <header
       className="sticky top-0 z-40 transition-all duration-200"
       style={{
-        background: scrolled ? 'rgba(10,10,10,0.88)' : 'var(--bg)',
+        background: scrolled ? 'color-mix(in srgb, var(--bg-card) 85%, transparent)' : 'var(--bg)',
         backdropFilter: scrolled ? 'blur(20px) saturate(180%)' : 'none',
         borderBottom: '1px solid var(--border)',
       }}

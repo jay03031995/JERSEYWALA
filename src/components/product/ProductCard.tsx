@@ -53,7 +53,7 @@ export default function ProductCard({ product }: { product: Product }) {
         boxShadow: 'none',
       }}
       onMouseEnter={(e) => {
-        (e.currentTarget as HTMLDivElement).style.boxShadow = '0 8px 40px rgba(0,0,0,0.4)'
+        (e.currentTarget as HTMLDivElement).style.boxShadow = '0 12px 32px rgba(20,15,10,0.12)'
         ;(e.currentTarget as HTMLDivElement).style.borderColor = 'var(--border-sub)'
       }}
       onMouseLeave={(e) => {

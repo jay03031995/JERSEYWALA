@@ -36,7 +36,7 @@ export default function CartItem({ item }: { item: CartItemType }) {
         </p>
         {item.playerName && (
           <p className="text-[11px] mt-0.5" style={{ color: 'var(--fg-sub)', fontFamily: 'var(--font-inter)' }}>
-            {item.playerName}
+            {item.playerName}{item.playerNumber ? ` · #${item.playerNumber}` : ''}
           </p>
         )}
         <p className="text-[11px] mt-0.5" style={{ color: 'var(--fg-muted)', fontFamily: 'var(--font-inter)' }}>
@@ -46,7 +46,7 @@ export default function CartItem({ item }: { item: CartItemType }) {
         <div className="flex items-center justify-between mt-2">
           <div className="flex items-center gap-1">
             <button
-              onClick={() => updateQuantity(item.variantId, item.quantity - 1)}
+              onClick={() => updateQuantity(item.id, item.quantity - 1)}
               className="p-1 rounded-md transition-colors"
               style={{ border: '1px solid var(--border)', color: 'var(--fg-muted)' }}
               onMouseEnter={(e) => (e.currentTarget.style.background = 'var(--bg-raised)')}
@@ -61,7 +61,7 @@ export default function CartItem({ item }: { item: CartItemType }) {
               {item.quantity}
             </span>
             <button
-              onClick={() => updateQuantity(item.variantId, item.quantity + 1)}
+              onClick={() => updateQuantity(item.id, item.quantity + 1)}
               className="p-1 rounded-md transition-colors"
               style={{ border: '1px solid var(--border)', color: 'var(--fg-muted)' }}
               onMouseEnter={(e) => (e.currentTarget.style.background = 'var(--bg-raised)')}
@@ -76,7 +76,7 @@ export default function CartItem({ item }: { item: CartItemType }) {
               {formatPrice(item.price * item.quantity)}
             </span>
             <button
-              onClick={() => removeItem(item.variantId)}
+              onClick={() => removeItem(item.id)}
               className="p-1 transition-colors"
               style={{ color: 'var(--fg-sub)' }}
               onMouseEnter={(e) => (e.currentTarget.style.color = 'var(--red)')}

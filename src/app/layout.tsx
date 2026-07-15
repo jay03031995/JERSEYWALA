@@ -125,7 +125,7 @@ const jsonLd = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" data-theme="dark" suppressHydrationWarning>
+    <html lang="en" data-theme="light" suppressHydrationWarning>
       <head>
         {/* Prevent flash of wrong theme — must be inline, runs before paint */}
         <script
@@ -157,9 +157,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           position="bottom-right"
           toastOptions={{
             style: {
-              background: '#1A1A1A',
-              color: '#fff',
-              border: '1px solid #262626',
+              background: 'var(--bg-card)',
+              color: 'var(--fg)',
+              border: '1px solid var(--border)',
               borderRadius: '10px',
               fontSize: '13px',
               fontFamily: 'var(--font-inter)',

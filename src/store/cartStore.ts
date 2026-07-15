@@ -7,6 +7,7 @@ export interface CartItem {
   variantId: string
   name: string
   playerName?: string
+  playerNumber?: string
   size: string
   price: number
   quantity: number
@@ -18,8 +19,8 @@ interface CartStore {
   items: CartItem[]
   isOpen: boolean
   addItem: (item: CartItem) => void
-  removeItem: (variantId: string) => void
-  updateQuantity: (variantId: string, qty: number) => void
+  removeItem: (id: string) => void
+  updateQuantity: (id: string, qty: number) => void
   clearCart: () => void
   openCart: () => void
   closeCart: () => void
@@ -34,11 +35,13 @@ export const useCartStore = create<CartStore>()(
       isOpen: false,
 
       addItem: (item) => {
-        const existing = get().items.find((i) => i.variantId === item.variantId)
+        // Dedup by line id (not variantId) so a customised jersey stays a
+        // separate line from a plain one of the same variant.
+        const existing = get().items.find((i) => i.id === item.id)
         if (existing) {
           set((state) => ({
             items: state.items.map((i) =>
-              i.variantId === item.variantId
+              i.id === item.id
                 ? { ...i, quantity: i.quantity + item.quantity }
                 : i
             ),
@@ -49,18 +52,18 @@ export const useCartStore = create<CartStore>()(
         set({ isOpen: true })
       },
 
-      removeItem: (variantId) =>
+      removeItem: (id) =>
         set((state) => ({
-          items: state.items.filter((i) => i.variantId !== variantId),
+          items: state.items.filter((i) => i.id !== id),
         })),
 
-      updateQuantity: (variantId, qty) =>
+      updateQuantity: (id, qty) =>
         set((state) => ({
           items:
             qty === 0
-              ? state.items.filter((i) => i.variantId !== variantId)
+              ? state.items.filter((i) => i.id !== id)
               : state.items.map((i) =>
-                  i.variantId === variantId ? { ...i, quantity: qty } : i
+                  i.id === id ? { ...i, quantity: qty } : i
                 ),
         })),
 

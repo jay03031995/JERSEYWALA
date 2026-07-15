@@ -18,15 +18,21 @@
   --font-sans:    var(--font-inter);
 }
 
+/* Light = premium warm base with bold sports accents (default theme) */
 [data-theme="light"] {
-  --bg:         #F4F4F0;
+  --bg:         #FAF7F2;
   --bg-card:    #FFFFFF;
-  --bg-raised:  #EAEAE6;
-  --border:     #DEDEDB;
-  --border-sub: #E8E8E4;
-  --fg:         #111111;
-  --fg-muted:   #666666;
-  --fg-sub:     #999999;
+  --bg-raised:  #F2EDE4;
+  --border:     #E8E1D5;
+  --border-sub: #F0EADF;
+  --fg:         #1A1712;
+  --fg-muted:   #6B645A;
+  --fg-sub:     #A79E90;
+  /* Accents tuned for readability on cream (dark theme keeps its neon set) */
+  --green:      #1F9D4D;
+  --gold:       #C08A2E;
+  --red:        #D81E34;
+  --blue:       #1565C0;
 }
 
 /* ── BASE ── */

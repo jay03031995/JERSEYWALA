@@ -38,6 +38,7 @@ export async function POST(request: NextRequest) {
     variantId: string
     name: string
     playerName?: string
+    playerNumber?: string
     size: string
     quantity: number
     price: number
@@ -47,7 +48,9 @@ export async function POST(request: NextRequest) {
     product_id: item.productId,
     variant_id: item.variantId,
     product_name: item.name,
-    player_name: item.playerName,
+    player_name: item.playerNumber
+      ? `${item.playerName ?? ''} #${item.playerNumber}`.trim()
+      : item.playerName,
     size: item.size,
     quantity: item.quantity,
     unit_price: item.price,

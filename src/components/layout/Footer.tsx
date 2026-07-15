@@ -1,4 +1,35 @@
+'use client'
+
 import Link from 'next/link'
+import { useEffect, useState } from 'react'
+import NewsletterForm from '@/components/ui/NewsletterForm'
+
+// Footer content mirrors a subset of StoreContent. Fetched client-side from the
+// public /api/store-content endpoint (same source the Navbar ticker uses), so
+// this stays a client component compatible with ConditionalLayout.
+type FooterContent = {
+  store_name: string
+  footer_tagline: string
+  footer_address: string
+  support_email: string
+  support_phone: string
+  instagram_url: string
+  facebook_url: string
+  twitter_url: string
+  whatsapp_number: string
+}
+
+const FOOTER_DEFAULTS: FooterContent = {
+  store_name: 'The Jersey Wala',
+  footer_tagline: "India's home for official and replica sports jerseys.",
+  footer_address: 'Gurugram, Haryana, India',
+  support_email: 'hello@thejerseywala.in',
+  support_phone: '',
+  instagram_url: '',
+  facebook_url: '',
+  twitter_url: '',
+  whatsapp_number: '',
+}
 
 // ─── Social SVGs ────────────────────────────────────────────────────────────
 
@@ -91,24 +122,43 @@ function PhonePeIcon() {
   )
 }
 
-// ─── Social link config ──────────────────────────────────────────────────────
-
-const SOCIAL = [
-  { key: 'fb',  href: 'https://facebook.com/thejerseywala',  Icon: FacebookIcon,  label: 'Facebook',  color: '#1877F2' },
-  { key: 'ig',  href: 'https://instagram.com/thejerseywala', Icon: InstagramIcon, label: 'Instagram', color: '#E1306C' },
-  { key: 'x',   href: 'https://twitter.com/thejerseywala',   Icon: XIcon,         label: 'X',         color: '#fff' },
-  { key: 'yt',  href: 'https://youtube.com/@thejerseywala',  Icon: YouTubeIcon,   label: 'YouTube',   color: '#FF0000' },
-]
-
 // ─── Component ───────────────────────────────────────────────────────────────
 
 export default function Footer() {
+  const [content, setContent] = useState<FooterContent>(FOOTER_DEFAULTS)
+
+  useEffect(() => {
+    let active = true
+    fetch('/api/store-content')
+      .then((r) => (r.ok ? r.json() : null))
+      .then((data) => {
+        if (active && data) setContent({ ...FOOTER_DEFAULTS, ...data })
+      })
+      .catch(() => {})
+    return () => {
+      active = false
+    }
+  }, [])
+
+  const socials = [
+    { key: 'fb', href: content.facebook_url || 'https://facebook.com/thejerseywala', Icon: FacebookIcon, label: 'Facebook', color: '#1877F2' },
+    { key: 'ig', href: content.instagram_url || 'https://instagram.com/thejerseywala', Icon: InstagramIcon, label: 'Instagram', color: '#E1306C' },
+    { key: 'x', href: content.twitter_url || 'https://twitter.com/thejerseywala', Icon: XIcon, label: 'X', color: 'var(--fg)' },
+    { key: 'yt', href: 'https://youtube.com/@thejerseywala', Icon: YouTubeIcon, label: 'YouTube', color: '#FF0000' },
+  ].filter((s) => s.href)
+
+  const waHref = content.whatsapp_number
+    ? content.whatsapp_number.startsWith('http')
+      ? content.whatsapp_number
+      : `https://wa.me/${content.whatsapp_number.replace(/[^0-9]/g, '')}`
+    : null
+
   return (
     <footer style={{ background: 'var(--bg-card)', borderTop: '1px solid var(--border)' }}>
-      <div className="max-w-7xl mx-auto px-5 sm:px-8 py-14 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-10">
+      <div className="max-w-7xl mx-auto px-5 sm:px-8 py-14 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-10">
 
         {/* Brand */}
-        <div>
+        <div className="lg:col-span-2">
           <Link href="/" className="flex items-center gap-2.5 mb-5">
             <div
               className="w-8 h-8 flex items-center justify-center rounded-lg"
@@ -120,16 +170,24 @@ export default function Footer() {
               className="text-[14px] font-semibold tracking-tight"
               style={{ color: 'var(--fg)', fontFamily: 'var(--font-inter)' }}
             >
-              The Jersey Wala
+              {content.store_name}
             </span>
           </Link>
-          <p className="text-[13px] leading-relaxed max-w-[180px]" style={{ color: 'var(--fg-muted)', fontFamily: 'var(--font-inter)' }}>
-            India&apos;s destination for authentic sports jerseys. Est. 2026.
+          <p className="text-[13px] leading-relaxed max-w-[280px]" style={{ color: 'var(--fg-muted)', fontFamily: 'var(--font-inter)' }}>
+            {content.footer_tagline}
           </p>
 
+          {/* Newsletter */}
+          <div className="mt-6 max-w-sm">
+            <p className="text-[12px] font-semibold uppercase tracking-[0.08em] mb-2" style={{ color: 'var(--fg)', fontFamily: 'var(--font-inter)' }}>
+              Get exclusive drops & offers
+            </p>
+            <NewsletterForm />
+          </div>
+
           {/* Social icons */}
-          <div className="flex gap-2 mt-5">
-            {SOCIAL.map(({ key, href, Icon, label, color }) => (
+          <div className="flex gap-2 mt-6">
+            {socials.map(({ key, href, Icon, label, color }) => (
               <a
                 key={key}
                 href={href}
@@ -168,7 +226,7 @@ export default function Footer() {
               <Link
                 key={item.href}
                 href={item.href}
-                className="block text-[13px] transition-colors hover:text-white"
+                className="block text-[13px] transition-colors hover:text-[var(--fg)]"
                 style={{ color: 'var(--fg-muted)', fontFamily: 'var(--font-inter)' }}
               >
                 {item.label}
@@ -188,15 +246,15 @@ export default function Footer() {
           <div className="space-y-3">
             {[
               { label: 'Track Your Order', href: '/orders' },
-              { label: 'Returns & Exchange', href: '#' },
-              { label: 'Size Guide', href: '#' },
-              { label: 'FAQ', href: '#' },
-              { label: 'Contact Us', href: '#' },
+              { label: 'My Account', href: '/account' },
+              { label: 'Wishlist', href: '/account/wishlist' },
+              { label: 'Privacy Policy', href: '/privacy' },
+              { label: 'Terms', href: '/terms' },
             ].map((item) => (
               <Link
-                key={item.label}
+                key={item.href}
                 href={item.href}
-                className="block text-[13px] transition-colors hover:text-white"
+                className="block text-[13px] transition-colors hover:text-[var(--fg)]"
                 style={{ color: 'var(--fg-muted)', fontFamily: 'var(--font-inter)' }}
               >
                 {item.label}
@@ -214,9 +272,22 @@ export default function Footer() {
             Contact
           </h4>
           <div className="space-y-3 text-[13px]" style={{ color: 'var(--fg-muted)', fontFamily: 'var(--font-inter)' }}>
-            <p>hello@thejerseywala.in</p>
-            <p>+91 98765 43210</p>
-            <p>Gurugram, Haryana</p>
+            {content.support_email && (
+              <a href={`mailto:${content.support_email}`} className="block transition-colors hover:text-[var(--fg)]">
+                {content.support_email}
+              </a>
+            )}
+            {content.support_phone && (
+              <a href={`tel:${content.support_phone.replace(/\s/g, '')}`} className="block transition-colors hover:text-[var(--fg)]">
+                {content.support_phone}
+              </a>
+            )}
+            {waHref && (
+              <a href={waHref} target="_blank" rel="noopener noreferrer" className="block transition-colors hover:text-[var(--fg)]">
+                WhatsApp Us
+              </a>
+            )}
+            {content.footer_address && <p>{content.footer_address}</p>}
           </div>
 
           {/* Payment icons */}
@@ -275,7 +346,7 @@ export default function Footer() {
               <Link
                 key={item.href}
                 href={item.href}
-                className="text-[12px] transition-colors hover:text-white"
+                className="text-[12px] transition-colors hover:text-[var(--fg)]"
                 style={{ color: 'var(--fg-sub)', fontFamily: 'var(--font-inter)' }}
               >
                 {item.label}
