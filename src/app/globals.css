@@ -136,9 +136,13 @@ h1, h2, h3, h4, h5 {
 .sport-hero__shade {
   position: absolute;
   inset: 0;
-  background:
-    linear-gradient(90deg, rgba(9,9,9,.92) 0%, rgba(9,9,9,.68) 38%, rgba(9,9,9,.12) 72%),
-    linear-gradient(0deg, rgba(9,9,9,.66) 0%, transparent 40%);
+  background: linear-gradient(
+    90deg,
+    rgba(8,8,8,.76) 0%,
+    rgba(8,8,8,.55) 30%,
+    rgba(8,8,8,.16) 52%,
+    transparent 72%
+  );
 }
 
 .sport-hero__content {
@@ -313,7 +317,7 @@ h1, h2, h3, h4, h5 {
   .sport-hero__content { min-height: 560px; }
   .sport-hero__image { object-position: 62% center; }
   .sport-hero__shade {
-    background: linear-gradient(0deg, rgba(8,8,8,.94) 0%, rgba(8,8,8,.55) 62%, rgba(8,8,8,.16) 100%);
+    background: linear-gradient(0deg, rgba(8,8,8,.84) 0%, rgba(8,8,8,.42) 48%, rgba(8,8,8,.04) 82%);
   }
   .sport-hero__content { padding: 180px 20px 34px; justify-content: flex-end; }
   .sport-hero h1 { font-size: 58px; max-width: 94%; }

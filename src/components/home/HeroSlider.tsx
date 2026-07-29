@@ -31,17 +31,15 @@ function bannerMatchesSport(banner: HomeBanner, sport: 'football' | 'cricket') {
 
 export default function HeroSlider({
   banners,
-  footballImage,
-  cricketImage,
 }: {
   banners: HomeBanner[]
-  footballImage?: string
-  cricketImage?: string
 }) {
   const { sport } = useSportPreference()
   const copy = COPY[sport]
   const matchingBanner = banners.find((banner) => bannerMatchesSport(banner, sport))
-  const image = matchingBanner?.image_url ?? (sport === 'football' ? footballImage : cricketImage)
+  const image = sport === 'football'
+    ? '/heroes/football-world-final.webp'
+    : '/heroes/cricket-lords-scene.webp'
 
   return (
     <section className="sport-hero" data-sport={sport}>
