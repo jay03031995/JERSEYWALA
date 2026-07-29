@@ -1,6 +1,7 @@
 'use client'
 
 import Link from 'next/link'
+import { ArrowRight, Award, KeyRound, Shield, Shirt, Sparkles } from 'lucide-react'
 import { useSportPreference } from '@/components/sport/SportPreference'
 
 export type CollectionTile = {
@@ -9,73 +10,47 @@ export type CollectionTile = {
   image: string
 }
 
-// Circular-tile "Shop by Collection" row. Tiles are computed upstream from
-// real sports/leagues + representative product images, so this stays purely
-// presentational and fully backend-driven.
 export default function ShopByCollection({ tiles }: { tiles: CollectionTile[] }) {
   const { sport } = useSportPreference()
-  const visibleTiles = tiles.filter((tile) => {
+  const sportTile = tiles.find((tile) => {
     const text = `${tile.label} ${tile.href}`.toLowerCase()
     return sport === 'cricket'
       ? text.includes('cricket') || text.includes('ipl')
       : text.includes('football')
   })
-  if (visibleTiles.length === 0) return null
+
+  const collections = [
+    { label: sport === 'football' ? 'Football' : 'Cricket', href: `/sport/${sport}`, image: sportTile?.image },
+    { label: 'Jerseys', href: `/shop?sport=${sport}&category=jersey`, Icon: Shirt },
+    { label: 'Trophies', href: `/shop?sport=${sport}&category=trophy`, Icon: Award },
+    { label: 'Keychains', href: `/shop?sport=${sport}&category=keychain`, Icon: KeyRound },
+    { label: 'Match Tackle', href: `/shop?sport=${sport}&category=tackle`, Icon: Shield },
+    { label: 'Accessories', href: `/shop?sport=${sport}&category=tackle`, Icon: Sparkles },
+  ]
 
   return (
-    <section style={{ background: 'var(--bg)', borderTop: '1px solid var(--border)' }}>
-      <div className="max-w-7xl mx-auto px-5 sm:px-8 py-16 sm:py-20">
-        <div className="text-center mb-10">
-          <p
-            className="text-[11px] font-semibold tracking-[0.14em] uppercase mb-2"
-            style={{ color: 'var(--red)', fontFamily: 'var(--font-inter)' }}
-          >
-            Find Your Fit
-          </p>
-          <h2
-            className="text-[32px] sm:text-[40px] font-bold uppercase leading-none"
-            style={{ fontFamily: 'var(--font-oswald)', letterSpacing: '-0.02em', color: 'var(--fg)' }}
-          >
-            Shop by Collection
-          </h2>
+    <section className="home-collections">
+      <div className="home-collections__inner">
+        <div className="home-collections__intro">
+          <p>Shop by collection</p>
+          <h1>Explore. Choose. Wear.</h1>
+          <span>Premium jerseys, collectibles and more for every kind of fan.</span>
         </div>
-
-        <div
-          className="flex gap-6 sm:gap-8 overflow-x-auto pb-3 sm:justify-center"
-          style={{ scrollbarWidth: 'none' }}
-        >
-          {visibleTiles.map((tile) => (
-            <Link
-              key={tile.label + tile.href}
-              href={tile.href}
-              className="group flex-shrink-0 flex flex-col items-center gap-3"
-              style={{ width: 150 }}
-            >
-              <div
-                className="relative rounded-full overflow-hidden transition-transform group-hover:scale-[1.04]"
-                style={{
-                  width: 150,
-                  height: 150,
-                  border: '1px solid var(--border)',
-                  background: 'var(--bg-raised)',
-                }}
-              >
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                  src={tile.image}
-                  alt={tile.label}
-                  className="w-full h-full object-cover"
-                  loading="lazy"
-                />
-              </div>
-              <span
-                className="text-[15px] font-semibold text-center"
-                style={{ color: 'var(--fg)', fontFamily: 'var(--font-oswald)', letterSpacing: '0.01em' }}
-              >
-                {tile.label}
+        <div className="home-collections__list">
+          {collections.map(({ label, href, image, Icon }) => (
+            <Link key={label} href={href}>
+              <span className="home-collections__circle">
+                {image ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={image} alt="" />
+                ) : Icon ? <Icon size={34} strokeWidth={1.35} /> : null}
               </span>
+              <strong>{label}</strong>
             </Link>
           ))}
+          <Link href={`/shop?sport=${sport}`} className="home-collections__next" aria-label="View all collections">
+            <ArrowRight size={18} />
+          </Link>
         </div>
       </div>
     </section>

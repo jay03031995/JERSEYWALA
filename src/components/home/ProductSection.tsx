@@ -35,13 +35,14 @@ export default function ProductSection({
   return (
     <section
       id={id}
+      className="home-product-rail"
       style={{
         borderTop: '1px solid var(--border)',
         background: tinted ? 'var(--bg-card)' : 'var(--bg)',
       }}
     >
-      <div className="max-w-7xl mx-auto px-5 sm:px-8 py-16 sm:py-20">
-        <div className="flex items-end justify-between mb-8 sm:mb-10 gap-4">
+      <div className="home-product-rail__inner">
+        <div className="home-product-rail__intro">
           <div>
             {eyebrow && (
               <p
@@ -52,23 +53,27 @@ export default function ProductSection({
               </p>
             )}
             <h2
-              className="text-[32px] sm:text-[40px] font-bold uppercase leading-none"
-              style={{ fontFamily: 'var(--font-oswald)', letterSpacing: '-0.02em', color: 'var(--fg)' }}
+              style={{ color: 'var(--fg)' }}
             >
               {title}
             </h2>
+            <span>
+              {title.toLowerCase().includes('hero')
+                ? 'Rep your legend. Relive their glory.'
+                : 'The latest jerseys and fan gear, just landed.'}
+            </span>
           </div>
           {ctaHref && (
             <Link
               href={ctaHref}
-              className="hidden sm:flex items-center gap-1.5 text-[13px] font-semibold whitespace-nowrap transition-colors"
-              style={{ color: 'var(--fg-muted)', fontFamily: 'var(--font-inter)' }}
             >
-              {ctaLabel} <ArrowRight size={13} />
+              {ctaLabel} <ArrowRight size={14} />
             </Link>
           )}
         </div>
-        <ProductGrid products={visibleProducts} />
+        <div className="home-product-rail__products">
+          <ProductGrid products={visibleProducts.slice(0, 4)} />
+        </div>
       </div>
     </section>
   )

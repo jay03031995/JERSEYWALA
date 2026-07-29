@@ -28,7 +28,7 @@ export default function WhyChoose({ freeShippingThreshold, returnDays }: Props) 
   ]
 
   return (
-    <section style={{ background: 'var(--bg-card)', borderTop: '1px solid var(--border)' }}>
+    <section className="home-promise" style={{ background: 'var(--bg-card)', borderTop: '1px solid var(--border)' }}>
       <div className="max-w-7xl mx-auto px-5 sm:px-8 py-16 sm:py-20">
         <div className="text-center mb-10">
           <p
@@ -45,12 +45,11 @@ export default function WhyChoose({ freeShippingThreshold, returnDays }: Props) 
           </h2>
         </div>
 
-        <div className="grid grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="home-promise__grid">
           {items.map(({ icon: Icon, title, desc }) => (
             <div
               key={title}
-              className="flex items-start gap-4 rounded-2xl p-5"
-              style={{ background: 'var(--bg)', border: '1px solid var(--border)' }}
+              className="home-promise__item"
             >
               <span
                 className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl"
