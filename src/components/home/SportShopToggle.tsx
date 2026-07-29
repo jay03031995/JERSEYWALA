@@ -1,48 +1,41 @@
 'use client'
 
-import { useMemo } from 'react'
 import Link from 'next/link'
 import { ArrowRight, Award, KeyRound, Shield, Shirt, Trophy } from 'lucide-react'
-import ProductGrid from '@/components/product/ProductGrid'
-import type { Product } from '@/types/database'
-import { productMatchesSport, useSportPreference } from '@/components/sport/SportPreference'
+import { useSportPreference } from '@/components/sport/SportPreference'
 
 const SHOP = {
   football: {
     label: 'Football',
     eyebrow: 'For the beautiful game',
     title: 'Football fan zone',
-    description: 'Club and country jerseys, fan keychains, trophies and match-day tackle.',
+    description: 'Shop club and country jerseys, collectibles, trophies and match-day essentials made for real football fans.',
     href: '/sport/football',
     categories: [
-      { label: 'Football jerseys', query: '/shop?sport=football&category=jersey', icon: Shirt },
-      { label: 'Keychains', query: '/shop?sport=football&category=keychain', icon: KeyRound },
-      { label: 'Trophies', query: '/shop?sport=football&category=trophy', icon: Trophy },
-      { label: 'Match tackle', query: '/shop?sport=football&category=tackle', icon: Shield },
+      { label: 'Football Jerseys', description: 'Club, country and retro fan favorites', query: '/shop?sport=football&category=jersey', icon: Shirt },
+      { label: 'Keychains', description: 'Everyday collectibles for true fans', query: '/shop?sport=football&category=keychain', icon: KeyRound },
+      { label: 'Trophies', description: 'Display-worthy football keepsakes', query: '/shop?sport=football&category=trophy', icon: Trophy },
+      { label: 'Match Tackle', description: 'Accessories for the match-day mood', query: '/shop?sport=football&category=tackle', icon: Shield },
     ],
   },
   cricket: {
     label: 'Cricket',
     eyebrow: 'For every innings',
     title: 'Cricket fan zone',
-    description: 'India and IPL jerseys, cricket keychains, trophies and essential tackle.',
+    description: 'Shop India and IPL jerseys, collectibles, trophies and match-day essentials made for real cricket fans.',
     href: '/sport/cricket',
     categories: [
-      { label: 'Cricket jerseys', query: '/shop?sport=cricket&category=jersey', icon: Shirt },
-      { label: 'Keychains', query: '/shop?sport=cricket&category=keychain', icon: KeyRound },
-      { label: 'Trophies', query: '/shop?sport=cricket&category=trophy', icon: Award },
-      { label: 'Cricket tackle', query: '/shop?sport=cricket&category=tackle', icon: Shield },
+      { label: 'Cricket Jerseys', description: 'India, IPL and international favorites', query: '/shop?sport=cricket&category=jersey', icon: Shirt },
+      { label: 'Keychains', description: 'Everyday collectibles for true fans', query: '/shop?sport=cricket&category=keychain', icon: KeyRound },
+      { label: 'Trophies', description: 'Display-worthy cricket keepsakes', query: '/shop?sport=cricket&category=trophy', icon: Award },
+      { label: 'Cricket Tackle', description: 'Accessories for every match-day mood', query: '/shop?sport=cricket&category=tackle', icon: Shield },
     ],
   },
 }
 
-export default function SportShopToggle({ products }: { products: Product[] }) {
+export default function SportShopToggle() {
   const { sport } = useSportPreference()
   const content = SHOP[sport]
-
-  const filtered = useMemo(() => {
-    return products.filter((product) => productMatchesSport(product, sport)).slice(0, 8)
-  }, [products, sport])
 
   return (
     <section className="sport-shop" aria-labelledby="sport-shop-heading">
@@ -59,20 +52,17 @@ export default function SportShopToggle({ products }: { products: Product[] }) {
         </div>
 
         <div className="sport-categories">
-          {content.categories.map(({ label, query, icon: Icon }) => (
-            <Link key={label} href={query}>
-              <span><Icon size={24} strokeWidth={1.7} /></span>
-              <strong>{label}</strong>
-              <ArrowRight size={15} />
+          {content.categories.map(({ label, description, query, icon: Icon }, index) => (
+            <Link key={label} href={query} className={index === 0 ? 'is-featured' : ''}>
+              <span className="sport-category__icon"><Icon size={index === 0 ? 32 : 25} strokeWidth={1.65} /></span>
+              <span className="sport-category__copy">
+                <strong>{label}</strong>
+                <small>{description}</small>
+              </span>
+              <span className="sport-category__arrow"><ArrowRight size={17} /></span>
             </Link>
           ))}
         </div>
-
-        {filtered.length > 0 && (
-          <div className="sport-shop__products">
-            <ProductGrid products={filtered} />
-          </div>
-        )}
       </div>
     </section>
   )

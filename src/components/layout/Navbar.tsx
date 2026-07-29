@@ -1,44 +1,151 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { ShoppingBag, Heart, Search, Menu, X, User, ChevronDown } from 'lucide-react'
+import { ChevronDown, Heart, Menu, Search, ShoppingBag, User, X } from 'lucide-react'
 import { useCartStore } from '@/store/cartStore'
 import { useWishlistStore } from '@/store/wishlistStore'
 import { HeaderSportToggle } from '@/components/sport/SportPreference'
 
-const NAV = [
+type MegaLink = { label: string; href: string; description?: string }
+type NavItem = {
+  label: string
+  href?: string
+  accent?: boolean
+  columns?: { title: string; links: MegaLink[] }[]
+}
+
+const NAV: NavItem[] = [
   { label: 'New Drops', href: '/shop?new=true', accent: true },
-  { label: 'Football', href: '/sport/football' },
-  { label: 'Cricket', href: '/sport/cricket' },
   {
-    label: 'Sports', children: [
-      { label: 'Football', href: '/sport/football' },
-      { label: 'Cricket', href: '/sport/cricket' },
-      { label: 'IPL 2026', href: '/sport/ipl' },
+    label: 'Football',
+    columns: [
+      {
+        title: 'Shop Football',
+        links: [
+          { label: 'All Football', href: '/sport/football', description: 'Every club, country and collection' },
+          { label: 'New Jerseys', href: '/shop?sport=football&category=jersey&new=true', description: 'The latest season drops' },
+          { label: 'Retro Jerseys', href: '/shop?sport=football&q=retro', description: 'Icons from unforgettable eras' },
+        ],
+      },
+      {
+        title: 'Fan Essentials',
+        links: [
+          { label: 'Keychains', href: '/shop?sport=football&category=keychain' },
+          { label: 'Trophies', href: '/shop?sport=football&category=trophy' },
+          { label: 'Match Tackle', href: '/shop?sport=football&category=tackle' },
+        ],
+      },
+      {
+        title: 'Popular Leagues',
+        links: [
+          { label: 'Premier League', href: '/league/premier-league' },
+          { label: 'La Liga', href: '/league/la-liga' },
+          { label: 'International', href: '/shop?sport=football&q=international' },
+        ],
+      },
     ],
   },
   {
-    label: 'IPL Teams', children: [
-      { label: 'Chennai Super Kings', href: '/team/chennai-super-kings' },
-      { label: 'Mumbai Indians', href: '/team/mumbai-indians' },
-      { label: 'Royal Challengers Bengaluru', href: '/team/royal-challengers-bengaluru' },
-      { label: 'Kolkata Knight Riders', href: '/team/kolkata-knight-riders' },
-      { label: 'Delhi Capitals', href: '/team/delhi-capitals' },
-      { label: 'Punjab Kings', href: '/team/punjab-kings' },
-      { label: 'Rajasthan Royals', href: '/team/rajasthan-royals' },
-      { label: 'Sunrisers Hyderabad', href: '/team/sunrisers-hyderabad' },
-      { label: 'Gujarat Titans', href: '/team/gujarat-titans' },
-      { label: 'Lucknow Super Giants', href: '/team/lucknow-super-giants' },
+    label: 'Cricket',
+    columns: [
+      {
+        title: 'Shop Cricket',
+        links: [
+          { label: 'All Cricket', href: '/sport/cricket', description: 'India, IPL and international teams' },
+          { label: 'New Jerseys', href: '/shop?sport=cricket&category=jersey&new=true', description: 'Fresh arrivals for this season' },
+          { label: 'India Jerseys', href: '/shop?sport=cricket&q=india', description: 'Wear the blue with pride' },
+        ],
+      },
+      {
+        title: 'Fan Essentials',
+        links: [
+          { label: 'Keychains', href: '/shop?sport=cricket&category=keychain' },
+          { label: 'Trophies', href: '/shop?sport=cricket&category=trophy' },
+          { label: 'Cricket Tackle', href: '/shop?sport=cricket&category=tackle' },
+        ],
+      },
+      {
+        title: 'Popular',
+        links: [
+          { label: 'IPL 2026', href: '/sport/ipl' },
+          { label: 'International Cricket', href: '/league/international-cricket' },
+          { label: 'Player Editions', href: '/shop?sport=cricket&q=player' },
+        ],
+      },
     ],
   },
   {
-    label: 'Leagues', children: [
-      { label: 'Premier League', href: '/league/premier-league' },
-      { label: 'La Liga', href: '/league/la-liga' },
-      { label: 'IPL 2026', href: '/league/ipl-2026' },
-      { label: 'International Cricket', href: '/league/international-cricket' },
+    label: 'Sports',
+    columns: [
+      {
+        title: 'Choose Your Game',
+        links: [
+          { label: 'Football', href: '/sport/football', description: 'Club and country fanwear' },
+          { label: 'Cricket', href: '/sport/cricket', description: 'India and international jerseys' },
+          { label: 'IPL', href: '/sport/ipl', description: 'Every franchise, every fan' },
+        ],
+      },
+      {
+        title: 'Shop By Need',
+        links: [
+          { label: 'Jerseys', href: '/shop?category=jersey' },
+          { label: 'Collectibles', href: '/shop?category=keychain' },
+          { label: 'Accessories', href: '/shop?category=tackle' },
+        ],
+      },
+    ],
+  },
+  {
+    label: 'IPL Teams',
+    columns: [
+      {
+        title: 'Fan Favourites',
+        links: [
+          { label: 'Chennai Super Kings', href: '/team/chennai-super-kings' },
+          { label: 'Mumbai Indians', href: '/team/mumbai-indians' },
+          { label: 'Royal Challengers Bengaluru', href: '/team/royal-challengers-bengaluru' },
+          { label: 'Kolkata Knight Riders', href: '/team/kolkata-knight-riders' },
+        ],
+      },
+      {
+        title: 'More Teams',
+        links: [
+          { label: 'Delhi Capitals', href: '/team/delhi-capitals' },
+          { label: 'Punjab Kings', href: '/team/punjab-kings' },
+          { label: 'Rajasthan Royals', href: '/team/rajasthan-royals' },
+        ],
+      },
+      {
+        title: 'More Teams',
+        links: [
+          { label: 'Sunrisers Hyderabad', href: '/team/sunrisers-hyderabad' },
+          { label: 'Gujarat Titans', href: '/team/gujarat-titans' },
+          { label: 'Lucknow Super Giants', href: '/team/lucknow-super-giants' },
+        ],
+      },
+    ],
+  },
+  {
+    label: 'Leagues',
+    columns: [
+      {
+        title: 'Football',
+        links: [
+          { label: 'Premier League', href: '/league/premier-league' },
+          { label: 'La Liga', href: '/league/la-liga' },
+          { label: 'International Football', href: '/shop?sport=football&q=international' },
+        ],
+      },
+      {
+        title: 'Cricket',
+        links: [
+          { label: 'IPL 2026', href: '/league/ipl-2026' },
+          { label: 'International Cricket', href: '/league/international-cricket' },
+          { label: 'India', href: '/shop?sport=cricket&q=india' },
+        ],
+      },
     ],
   },
   { label: 'Sale', href: '/shop?deals=true' },
@@ -47,10 +154,8 @@ const NAV = [
 const DEFAULT_TICKER = [
   'Free delivery on orders above ₹999',
   'Use code JERSEY10 for 10% off',
-  'FIFA 2026 jerseys now available',
+  'Fresh football and cricket drops available now',
 ]
-
-type NavItem = { label: string; href?: string; accent?: boolean; children?: { label: string; href: string }[] }
 
 export default function Navbar() {
   const pathname = usePathname()
@@ -58,233 +163,173 @@ export default function Navbar() {
   const [searchOpen, setSearchOpen] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
   const [scrolled, setScrolled] = useState(false)
-  const [tickerMessages, setTickerMessages] = useState<string[]>(DEFAULT_TICKER)
-  const [navOverride, setNavOverride] = useState<NavItem[] | null>(null)
+  const [tickerMessages, setTickerMessages] = useState(DEFAULT_TICKER)
+  const openCart = useCartStore((state) => state.openCart)
+  const cartCount = useCartStore((state) => state.itemCount())
+  const wishlistCount = useWishlistStore((state) => state.items.length)
 
   useEffect(() => {
-    let cancelled = false
     fetch('/api/store-content')
-      .then((r) => (r.ok ? r.json() : null))
+      .then((response) => (response.ok ? response.json() : null))
       .then((data) => {
-        if (cancelled || !data) return
-        if (Array.isArray(data.ticker_messages) && data.ticker_messages.length > 0) {
+        if (Array.isArray(data?.ticker_messages) && data.ticker_messages.length > 0) {
           setTickerMessages(data.ticker_messages)
-        }
-        if (Array.isArray(data.nav_items) && data.nav_items.length > 0) {
-          setNavOverride(
-            (data.nav_items as Array<{ label?: string; href?: string; accent?: boolean }>)
-              .filter((n) => n.label && n.href)
-              .map((n) => ({ label: n.label!, href: n.href!, accent: !!n.accent })),
-          )
         }
       })
       .catch(() => {})
-    return () => {
-      cancelled = true
-    }
   }, [])
-
-  const navItems: NavItem[] = navOverride ?? NAV
-
-  const openCart = useCartStore((s) => s.openCart)
-  const cartCount = useCartStore((s) => s.itemCount())
-  const wishlistCount = useWishlistStore((s) => s.items.length)
 
   useEffect(() => {
-    const fn = () => setScrolled(window.scrollY > 4)
-    window.addEventListener('scroll', fn)
-    return () => window.removeEventListener('scroll', fn)
+    const onScroll = () => setScrolled(window.scrollY > 6)
+    onScroll()
+    window.addEventListener('scroll', onScroll, { passive: true })
+    return () => window.removeEventListener('scroll', onScroll)
   }, [])
 
-  useEffect(() => { setMenuOpen(false) }, [pathname])
+  useEffect(() => setMenuOpen(false), [pathname])
+
+  const submitSearch = () => {
+    if (searchQuery.trim()) window.location.href = `/shop?q=${encodeURIComponent(searchQuery.trim())}`
+  }
 
   return (
-    <header
-      className="sticky top-0 z-40 transition-all duration-200"
-      style={{
-        background: scrolled ? 'color-mix(in srgb, var(--bg-card) 85%, transparent)' : 'var(--bg)',
-        backdropFilter: scrolled ? 'blur(20px) saturate(180%)' : 'none',
-        borderBottom: '1px solid var(--border)',
-      }}
-    >
-      {/* Ticker strip */}
-      <div className="overflow-hidden" style={{ background: 'var(--red)', height: '30px' }}>
-        <div className="flex items-center h-full animate-[marquee_30s_linear_infinite] whitespace-nowrap gap-12 px-4">
-          {Array.from({ length: 4 }).flatMap((_, repeatIdx) =>
-            tickerMessages.flatMap((msg, msgIdx) => [
-              <span
-                key={`${repeatIdx}-${msgIdx}-text`}
-                className="text-white text-[11px] font-semibold tracking-[0.08em] uppercase"
-              >
-                {msg}
-              </span>,
-              <span key={`${repeatIdx}-${msgIdx}-sep`} className="text-white/40 mx-4">·</span>,
-            ]),
+    <header className={`premium-header ${scrolled ? 'is-scrolled' : ''}`}>
+      <div className="premium-header__ticker">
+        <div className="premium-header__ticker-track">
+          {Array.from({ length: 3 }).flatMap((_, repeatIndex) =>
+            tickerMessages.map((message, messageIndex) => (
+              <span key={`${repeatIndex}-${messageIndex}`}>
+                {message}<i aria-hidden="true">•</i>
+              </span>
+            )),
           )}
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-5 sm:px-8 flex items-center h-14 gap-5">
-        {/* Logo */}
-        <Link href="/" className="shrink-0 flex items-center gap-2.5">
-          <div
-            className="w-8 h-8 flex items-center justify-center rounded-lg"
-            style={{ background: 'var(--red)' }}
+      <div className="premium-header__utility">
+        <div className="premium-header__utility-inner">
+          <button
+            className="premium-header__mobile-menu"
+            type="button"
+            onClick={() => setMenuOpen((open) => !open)}
+            aria-label={menuOpen ? 'Close menu' : 'Open menu'}
+            aria-expanded={menuOpen}
           >
-            <span className="text-white text-[11px] font-bold tracking-widest uppercase">JW</span>
+            {menuOpen ? <X size={20} /> : <Menu size={20} />}
+          </button>
+
+          <Link href="/" className="premium-brand" aria-label="The Jersey Wala home">
+            <span className="premium-brand__mark">JW</span>
+            <span className="premium-brand__name">The Jersey Wala</span>
+          </Link>
+
+          <div className="premium-header__trust">
+            <span>Official fanwear destination</span>
+            <span>Easy 7-day returns</span>
           </div>
-          <span
-            className="text-[15px] font-semibold tracking-tight hidden sm:block"
-            style={{ color: 'var(--fg)', fontFamily: 'var(--font-inter)' }}
-          >
-            The Jersey Wala
-          </span>
-        </Link>
 
-        <HeaderSportToggle />
-
-        {/* Desktop Nav */}
-        <nav className="hidden xl:flex items-center gap-0.5 flex-1">
-          {navItems.map((item) =>
-            item.children ? (
-              <div key={item.label} className="relative group">
-                <button
-                  className="flex items-center gap-1 px-3 py-2 text-[13px] font-medium rounded-lg transition-colors"
-                  style={{ color: 'var(--fg-muted)' }}
-                >
-                  {item.label} <ChevronDown size={11} />
-                </button>
-                <div
-                  className={`absolute top-full left-0 mt-2 rounded-xl p-1.5 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-150 translate-y-1 group-hover:translate-y-0 shadow-2xl ${item.label === 'IPL Teams' ? 'w-64' : 'w-48'}`}
-                  style={{ background: 'var(--bg-raised)', border: '1px solid var(--border)' }}
-                >
-                  {item.children.map((c) => (
-                    <Link
-                      key={c.href}
-                      href={c.href}
-                      className="block px-3 py-2 rounded-lg text-[13px] transition-colors"
-                      style={{ color: 'var(--fg-muted)' }}
-                      onMouseEnter={(e) => { e.currentTarget.style.color = 'var(--fg)'; e.currentTarget.style.background = 'var(--bg-card)' }}
-                      onMouseLeave={(e) => { e.currentTarget.style.color = 'var(--fg-muted)'; e.currentTarget.style.background = 'transparent' }}
-                    >
-                      {c.label}
-                    </Link>
-                  ))}
-                </div>
-              </div>
-            ) : (
-              <Link
-                key={item.label}
-                href={item.href!}
-                className="px-3 py-2 text-[13px] font-medium rounded-lg transition-colors"
-                style={{ color: item.accent ? 'var(--red)' : 'var(--fg-muted)' }}
-              >
-                {item.label}
-              </Link>
-            )
-          )}
-        </nav>
-
-        {/* Spacer: pushes actions right when desktop nav is hidden */}
-        <div className="flex-1 xl:hidden" />
-
-        {/* Actions */}
-        <div className="flex items-center gap-0.5">
-          <button
-            onClick={() => setSearchOpen(!searchOpen)}
-            className="p-2 rounded-lg transition-colors"
-            style={{ color: 'var(--fg-muted)' }}
-          >
-            <Search size={17} />
-          </button>
-
-          <Link href="/account/wishlist" className="hidden sm:block relative p-2 rounded-lg transition-colors" style={{ color: 'var(--fg-muted)' }}>
-            <Heart size={17} />
-            {wishlistCount > 0 && (
-              <span className="absolute top-1.5 right-1.5 w-3 h-3 rounded-full text-[9px] font-bold flex items-center justify-center text-white" style={{ background: 'var(--red)' }}>
-                {wishlistCount}
-              </span>
-            )}
-          </Link>
-
-          <button onClick={openCart} className="relative p-2 rounded-lg transition-colors" style={{ color: 'var(--fg-muted)' }}>
-            <ShoppingBag size={17} />
-            {cartCount > 0 && (
-              <span className="absolute top-1.5 right-1.5 w-3 h-3 rounded-full text-[9px] font-bold flex items-center justify-center text-white" style={{ background: 'var(--red)' }}>
-                {cartCount}
-              </span>
-            )}
-          </button>
-
-          <Link href="/account" className="hidden sm:block p-2 rounded-lg transition-colors" style={{ color: 'var(--fg-muted)' }}>
-            <User size={17} />
-          </Link>
-
-          <button
-            className="xl:hidden p-2 rounded-lg transition-colors ml-1"
-            style={{ color: 'var(--fg-muted)' }}
-            onClick={() => setMenuOpen(!menuOpen)}
-          >
-            {menuOpen ? <X size={17} /> : <Menu size={17} />}
-          </button>
+          <div className="premium-header__actions">
+            <button type="button" onClick={() => setSearchOpen((open) => !open)} aria-label="Search">
+              <Search size={19} />
+            </button>
+            <Link href="/account/wishlist" className="desktop-action" aria-label="Wishlist">
+              <Heart size={19} />
+              {wishlistCount > 0 && <b>{wishlistCount}</b>}
+            </Link>
+            <button type="button" onClick={openCart} aria-label="Shopping bag">
+              <ShoppingBag size={19} />
+              {cartCount > 0 && <b>{cartCount}</b>}
+            </button>
+            <Link href="/account" className="desktop-action" aria-label="Account">
+              <User size={19} />
+            </Link>
+          </div>
         </div>
       </div>
 
-      {/* Search */}
-      {searchOpen && (
-        <div className="px-5 py-3" style={{ borderTop: '1px solid var(--border)' }}>
-          <div className="max-w-xl mx-auto">
-            <input
-              type="text"
-              placeholder="Search jerseys, teams, players..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter' && searchQuery.trim())
-                  window.location.href = `/shop?q=${encodeURIComponent(searchQuery)}`
-              }}
-              autoFocus
-              className="w-full px-4 py-2.5 rounded-xl text-[14px] focus:outline-none transition"
-              style={{
-                background: 'var(--bg-raised)',
-                color: 'var(--fg)',
-                border: '1px solid var(--border)',
-              }}
-            />
-          </div>
-        </div>
-      )}
-
-      {/* Mobile Menu */}
-      {menuOpen && (
-        <div className="xl:hidden px-4 py-3 space-y-1" style={{ borderTop: '1px solid var(--border)', background: 'var(--bg-card)', maxHeight: '70vh', overflowY: 'auto' }}>
-          {navItems.map((item) =>
-            item.children ? (
-              <div key={item.label}>
-                <p className="px-3 pt-3 pb-1 text-[10px] font-bold uppercase tracking-[0.08em]" style={{ color: 'var(--fg-sub)', fontFamily: 'var(--font-inter)' }}>
-                  {item.label}
-                </p>
-                {item.children.map((c) => (
-                  <Link key={c.href} href={c.href} className="block px-3 py-2 rounded-lg text-[13px]" style={{ color: 'var(--fg-muted)', fontFamily: 'var(--font-inter)' }}>
-                    {c.label}
+      <div className="premium-header__nav-row">
+        <div className="premium-header__nav-inner">
+          <nav className="premium-nav" aria-label="Main navigation">
+            {NAV.map((item) => (
+              <div key={item.label} className="premium-nav__item">
+                {item.columns ? (
+                  <>
+                    <button type="button" className={item.accent ? 'is-accent' : ''}>
+                      {item.label}<ChevronDown size={13} />
+                    </button>
+                    <div className="premium-mega">
+                      <div className="premium-mega__inner">
+                        <div className="premium-mega__intro">
+                          <span>Explore</span>
+                          <strong>{item.label}</strong>
+                          <p>Curated jerseys and fan essentials, selected for the people who live the game.</p>
+                        </div>
+                        {item.columns.map((column) => (
+                          <div key={column.title} className="premium-mega__column">
+                            <h3>{column.title}</h3>
+                            {column.links.map((link) => (
+                              <Link key={link.href + link.label} href={link.href}>
+                                <span>{link.label}</span>
+                                {link.description && <small>{link.description}</small>}
+                              </Link>
+                            ))}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </>
+                ) : (
+                  <Link href={item.href!} className={item.accent ? 'is-accent' : ''}>
+                    {item.label}
                   </Link>
-                ))}
+                )}
               </div>
-            ) : (
-              <Link key={item.href} href={item.href!} className="block px-3 py-2.5 rounded-lg text-[14px] font-medium" style={{ color: item.accent ? 'var(--red)' : 'var(--fg)', fontFamily: 'var(--font-inter)' }}>
-                {item.label}
-              </Link>
-            )
-          )}
+            ))}
+          </nav>
+          <HeaderSportToggle />
+        </div>
+      </div>
+
+      {searchOpen && (
+        <div className="premium-search">
+          <div>
+            <Search size={18} />
+            <input
+              value={searchQuery}
+              onChange={(event) => setSearchQuery(event.target.value)}
+              onKeyDown={(event) => event.key === 'Enter' && submitSearch()}
+              placeholder="Search jerseys, teams and collections"
+              autoFocus
+            />
+            <button type="button" onClick={submitSearch}>Search</button>
+          </div>
         </div>
       )}
 
-      <style>{`
-        @keyframes marquee {
-          0% { transform: translateX(0); }
-          100% { transform: translateX(-50%); }
-        }
-      `}</style>
+      {menuOpen && (
+        <div className="premium-mobile-menu">
+          <HeaderSportToggle />
+          {NAV.map((item) => (
+            <div key={item.label} className="premium-mobile-menu__group">
+              {item.href && (
+                <Link href={item.href} className={item.accent ? 'is-accent' : ''}>
+                  {item.label}
+                </Link>
+              )}
+              {item.columns && (
+                <>
+                  <strong>{item.label}</strong>
+                  <div>
+                    {item.columns.flatMap((column) => column.links).slice(0, 8).map((link) => (
+                      <Link key={link.href + link.label} href={link.href}>{link.label}</Link>
+                    ))}
+                  </div>
+                </>
+              )}
+            </div>
+          ))}
+        </div>
+      )}
     </header>
   )
 }

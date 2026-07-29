@@ -95,7 +95,7 @@ export default async function HomePage() {
 
       <HeroSlider banners={heroBanners} />
 
-      <SportShopToggle products={pool} />
+      <SportShopToggle />
 
       <ShopByCollection tiles={tiles} />
 
