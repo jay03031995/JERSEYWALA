@@ -10,7 +10,7 @@ export default async function SettingsPage() {
     : { data: null }
 
   const delhiveryConfigured = !!process.env.DELHIVERY_API_TOKEN
-  const razorpayConfigured = !!process.env.RAZORPAY_KEY_ID
+  const stripeConfigured = !!process.env.STRIPE_SECRET_KEY
 
   return (
     <div className="px-6 py-8 max-w-3xl mx-auto">
@@ -55,7 +55,7 @@ export default async function SettingsPage() {
         </p>
         <div className="space-y-3">
           {[
-            { name: 'Razorpay (Payments)', env: 'RAZORPAY_KEY_ID', configured: razorpayConfigured, desc: 'Payment gateway for UPI, cards, wallets' },
+            { name: 'Stripe (Payments)', env: 'STRIPE_SECRET_KEY', configured: stripeConfigured, desc: 'Secure hosted checkout and card payments' },
             { name: 'Delhivery (Shipping)', env: 'DELHIVERY_API_TOKEN', configured: delhiveryConfigured, desc: 'Real-time shipment tracking API' },
             { name: 'Supabase (Database)', env: 'NEXT_PUBLIC_SUPABASE_URL', configured: true, desc: 'Database & auth' },
           ].map(({ name, env, configured, desc }) => (

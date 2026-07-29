@@ -3,62 +3,129 @@ import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { generateOrderNumber } from '@/lib/utils'
 
+type CheckoutItem = {
+  productId: string
+  variantId: string
+  quantity: number
+}
+
 export async function POST(request: NextRequest) {
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-  const admin = createAdminClient()
+  try {
+    const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    const admin = createAdminClient()
 
-  const body = await request.json()
-  const { items, address, subtotal, shipping, total, paymentMethod = 'online' } = body
+    const body = await request.json()
+    const { items, address, paymentMethod = 'online' } = body as {
+      items?: CheckoutItem[]
+      address?: Record<string, string>
+      paymentMethod?: 'online' | 'cod'
+    }
 
-  const isCOD = paymentMethod === 'cod'
-  const orderNumber = generateOrderNumber()
+    if (!Array.isArray(items) || items.length === 0 || items.length > 50) {
+      return NextResponse.json({ error: 'Your cart is empty or invalid' }, { status: 400 })
+    }
+    const requiredAddress = ['full_name', 'phone', 'address_line1', 'city', 'state', 'postal_code']
+    if (!address || requiredAddress.some((field) => !address[field]?.trim())) {
+      return NextResponse.json({ error: 'Please complete the delivery address' }, { status: 400 })
+    }
+    if (!/^\d{6}$/.test(address.postal_code) || !/^[+\d][\d\s-]{7,14}$/.test(address.phone)) {
+      return NextResponse.json({ error: 'Enter a valid Indian phone number and PIN code' }, { status: 400 })
+    }
+    if (!['online', 'cod'].includes(paymentMethod)) {
+      return NextResponse.json({ error: 'Invalid payment method' }, { status: 400 })
+    }
 
-  const { data: order, error } = await admin
-    .from('orders')
-    .insert({
-      order_number: orderNumber,
-      user_id: user?.id ?? null,
-      status: isCOD ? 'confirmed' : 'pending',
-      payment_status: isCOD ? 'cod' : 'pending',
-      subtotal,
-      shipping_cost: shipping,
-      discount_amount: 0,
-      total,
-      currency: 'INR',
-      shipping_address: address,
+    const variantIds = [...new Set(items.map((item) => item.variantId))]
+    const { data: variants, error: variantError } = await admin
+      .from('product_variants')
+      .select('id, product_id, size, stock_quantity, additional_price, product:products(id, name, player_name, player_number, base_price, is_active, images:product_images(url, is_primary))')
+      .in('id', variantIds)
+
+    if (variantError) throw variantError
+    const byId = new Map((variants ?? []).map((variant) => [variant.id, variant]))
+
+    const verifiedItems = items.map((item) => {
+      const variant = byId.get(item.variantId)
+      const productValue = variant?.product
+      const product = Array.isArray(productValue) ? productValue[0] : productValue
+      const quantity = Number(item.quantity)
+      if (
+        !variant || !product || product.id !== item.productId || !product.is_active ||
+        !Number.isInteger(quantity) || quantity < 1 || quantity > 10 ||
+        variant.stock_quantity < quantity
+      ) {
+        throw new Error('One or more cart items are unavailable. Please refresh your cart.')
+      }
+      const unitPrice = Number(product.base_price) + Number(variant.additional_price ?? 0)
+      const images = Array.isArray(product.images) ? product.images : []
+      const primaryImage = images.find((image) => image.is_primary)?.url ?? images[0]?.url ?? null
+      return {
+        product_id: product.id,
+        variant_id: variant.id,
+        product_name: product.name,
+        player_name: product.player_number
+          ? `${product.player_name ?? ''} #${product.player_number}`.trim()
+          : product.player_name,
+        size: variant.size,
+        quantity,
+        unit_price: unitPrice,
+        total_price: unitPrice * quantity,
+        image_url: primaryImage,
+      }
     })
-    .select()
-    .single()
 
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+    const subtotal = verifiedItems.reduce((sum, item) => sum + item.total_price, 0)
+    const shipping = subtotal >= 999 ? 0 : 99
+    const total = subtotal + shipping
+    const isCOD = paymentMethod === 'cod'
+    const orderNumber = generateOrderNumber()
 
-  const orderItems = items.map((item: {
-    productId: string
-    variantId: string
-    name: string
-    playerName?: string
-    playerNumber?: string
-    size: string
-    quantity: number
-    price: number
-    imageUrl: string
-  }) => ({
-    order_id: order.id,
-    product_id: item.productId,
-    variant_id: item.variantId,
-    product_name: item.name,
-    player_name: item.playerNumber
-      ? `${item.playerName ?? ''} #${item.playerNumber}`.trim()
-      : item.playerName,
-    size: item.size,
-    quantity: item.quantity,
-    unit_price: item.price,
-    total_price: item.price * item.quantity,
-    image_url: item.imageUrl,
-  }))
+    const { data: order, error } = await admin
+      .from('orders')
+      .insert({
+        order_number: orderNumber,
+        user_id: user?.id ?? null,
+        status: isCOD ? 'confirmed' : 'pending',
+        payment_status: 'pending',
+        payment_method: paymentMethod,
+        subtotal,
+        shipping_cost: shipping,
+        discount_amount: 0,
+        total,
+        currency: 'INR',
+        shipping_address: { ...address, country: 'IN' },
+      })
+      .select('id, order_number, total')
+      .single()
 
-  await admin.from('order_items').insert(orderItems)
+    if (error) throw error
 
-  return NextResponse.json({ orderId: order.id, orderNumber })
+    const { error: itemsError } = await admin
+      .from('order_items')
+      .insert(verifiedItems.map((item) => ({ ...item, order_id: order.id })))
+    if (itemsError) {
+      await admin.from('orders').delete().eq('id', order.id)
+      throw itemsError
+    }
+
+    if (isCOD) {
+      const { error: reserveError } = await admin.rpc('reserve_order_inventory', {
+        target_order_id: order.id,
+      })
+      if (reserveError) {
+        await admin.from('orders').delete().eq('id', order.id)
+        throw new Error('A cart item just sold out. Please review your cart.')
+      }
+    }
+
+    return NextResponse.json({
+      orderId: order.id,
+      orderNumber: order.order_number,
+      amount: Number(order.total),
+    })
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Could not create order'
+    return NextResponse.json({ error: message }, { status: 400 })
+  }
 }

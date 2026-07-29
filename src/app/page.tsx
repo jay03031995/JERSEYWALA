@@ -22,6 +22,7 @@ import ReviewsCarousel from '@/components/home/ReviewsCarousel'
 import InstagramGallery from '@/components/home/InstagramGallery'
 import WhatsAppCommunity from '@/components/home/WhatsAppCommunity'
 import NewsletterForm from '@/components/ui/NewsletterForm'
+import SportShopToggle from '@/components/home/SportShopToggle'
 
 export const revalidate = 30
 
@@ -94,11 +95,13 @@ export default async function HomePage() {
 
       <HeroSlider banners={heroBanners} />
 
+      <SportShopToggle products={pool} />
+
       <ShopByCollection tiles={tiles} />
 
       <ProductSection
-        eyebrow="Just Dropped"
-        title="New Arrivals"
+        eyebrow="Fresh off the pitch"
+        title="New drops"
         ctaHref="/shop?new=true"
         products={newArrivals}
         tinted
@@ -106,8 +109,8 @@ export default async function HomePage() {
 
       <ProductSection
         id="legends"
-        eyebrow="Icons & Idols"
-        title="Worn by Legends"
+        eyebrow="Player editions"
+        title="Wear your hero"
         ctaHref="/shop"
         products={signature}
       />
@@ -120,23 +123,23 @@ export default async function HomePage() {
       />
 
       <ProductSection
-        eyebrow="Fan Favourites"
-        title="Best Sellers"
+        eyebrow="Crowd approved"
+        title="Fan favourites"
         ctaHref="/shop"
         products={bestSellers}
         tinted
       />
 
       <ProductSection
-        eyebrow="Handpicked"
-        title="Featured Collection"
+        eyebrow="The starting XI"
+        title="Jerseywala picks"
         ctaHref="/shop"
         products={featured}
       />
 
       <ProductSection
-        eyebrow="Limited Time"
-        title="Special Offers"
+        eyebrow="Limited time"
+        title="Red hot deals"
         ctaHref="/shop?deals=true"
         products={sale}
         tinted

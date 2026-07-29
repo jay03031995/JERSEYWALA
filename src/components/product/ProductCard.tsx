@@ -73,8 +73,8 @@ export default function ProductCard({ product }: { product: Product }) {
         )}
         {product.is_new_arrival && (
           <span
-            className="text-[10px] font-semibold px-2 py-0.5 rounded-full"
-            style={{ background: 'var(--green)', color: '#000' }}
+            className="text-[10px] font-semibold px-2 py-0.5 rounded-full text-white"
+            style={{ background: 'var(--red)' }}
           >
             New
           </span>

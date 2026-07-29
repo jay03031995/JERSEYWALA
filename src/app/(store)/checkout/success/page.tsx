@@ -1,5 +1,6 @@
 import Link from 'next/link'
 import { CheckCircle } from 'lucide-react'
+import SuccessCartCleaner from '@/components/checkout/SuccessCartCleaner'
 
 export default function CheckoutSuccessPage() {
   return (
@@ -7,6 +8,7 @@ export default function CheckoutSuccessPage() {
       className="min-h-screen flex items-center justify-center px-4"
       style={{ background: 'var(--bg)' }}
     >
+      <SuccessCartCleaner />
       <div
         className="max-w-md w-full rounded-2xl p-10 text-center"
         style={{ background: 'var(--bg-card)', border: '1px solid var(--border)' }}

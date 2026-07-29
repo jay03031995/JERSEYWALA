@@ -96,7 +96,7 @@ export interface ProductImage {
 export interface ProductVariant {
   id: string
   product_id: string
-  size: 'XS' | 'S' | 'M' | 'L' | 'XL' | 'XXL' | '3XL'
+  size: 'OS' | 'XS' | 'S' | 'M' | 'L' | 'XL' | 'XXL' | '3XL'
   stock_quantity: number
   sku?: string
   additional_price: number
@@ -127,6 +127,9 @@ export interface Order {
   payment_status: PaymentStatus
   payment_method?: string
   payment_reference?: string
+  stripe_checkout_session_id?: string
+  stripe_payment_intent_id?: string
+  inventory_reserved?: boolean
   subtotal: number
   shipping_cost: number
   discount_amount: number

@@ -3,12 +3,14 @@
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { ShoppingBag, Heart, Search, Menu, X, User, ChevronDown, Sun, Moon } from 'lucide-react'
+import { ShoppingBag, Heart, Search, Menu, X, User, ChevronDown } from 'lucide-react'
 import { useCartStore } from '@/store/cartStore'
 import { useWishlistStore } from '@/store/wishlistStore'
 
 const NAV = [
-  { label: 'Shop All', href: '/shop' },
+  { label: 'New Drops', href: '/shop?new=true', accent: true },
+  { label: 'Football', href: '/sport/football' },
+  { label: 'Cricket', href: '/sport/cricket' },
   {
     label: 'Sports', children: [
       { label: 'Football', href: '/sport/football' },
@@ -38,27 +40,8 @@ const NAV = [
       { label: 'International Cricket', href: '/league/international-cricket' },
     ],
   },
-  { label: 'New In', href: '/shop?new=true', accent: true },
   { label: 'Sale', href: '/shop?deals=true' },
 ]
-
-function ThemeToggle() {
-  const [theme, setTheme] = useState<'dark' | 'light'>('light')
-  useEffect(() => {
-    setTheme((document.documentElement.getAttribute('data-theme') as 'dark' | 'light') || 'light')
-  }, [])
-  const toggle = () => {
-    const next = theme === 'dark' ? 'light' : 'dark'
-    document.documentElement.setAttribute('data-theme', next)
-    localStorage.setItem('theme', next)
-    setTheme(next)
-  }
-  return (
-    <button onClick={toggle} className="p-2 rounded-lg hover:bg-[var(--bg-raised)] transition-colors text-[var(--fg-muted)] hover:text-[var(--fg)]">
-      {theme === 'dark' ? <Sun size={16} /> : <Moon size={16} />}
-    </button>
-  )
-}
 
 const DEFAULT_TICKER = [
   'Free delivery on orders above ₹999',
@@ -204,8 +187,6 @@ export default function Navbar() {
 
         {/* Actions */}
         <div className="flex items-center gap-0.5">
-          <ThemeToggle />
-
           <button
             onClick={() => setSearchOpen(!searchOpen)}
             className="p-2 rounded-lg transition-colors"

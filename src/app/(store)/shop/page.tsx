@@ -28,14 +28,33 @@ export default async function ShopPage({ searchParams }: ShopPageProps) {
     .limit(80)
   const products = (productsRaw ?? []).filter((p) => {
     const imgs = (p.images as { url?: string | null }[] | null) ?? []
-    return imgs.some((i) => typeof i?.url === 'string' && i.url.trim().length > 0)
+    if (!imgs.some((i) => typeof i?.url === 'string' && i.url.trim().length > 0)) return false
+
+    const tags = ((p.tags as string[] | null) ?? []).map((tag) => tag.toLowerCase())
+    const sportSlug = p.team?.league?.sport?.slug?.toLowerCase()
+    const requestedSport = typeof params.sport === 'string' ? params.sport.toLowerCase() : ''
+    const category = typeof params.category === 'string' ? params.category.toLowerCase() : ''
+
+    if (requestedSport) {
+      const isCricket = requestedSport === 'cricket' && (sportSlug === 'cricket' || sportSlug === 'ipl')
+      if (!isCricket && sportSlug !== requestedSport && !tags.includes(requestedSport)) return false
+    }
+    if (category && !tags.includes(category)) {
+      // Existing jerseys predate category tags, so team-linked products count as jerseys.
+      if (category !== 'jersey' || !p.team_id) return false
+    }
+    return true
   }).slice(0, 40)
 
   const title = params.q
     ? `Search: "${params.q}"`
+    : params.sport || params.category
+    ? [params.sport, params.category].filter(Boolean).map((value) =>
+        String(value).replace(/-/g, ' ').replace(/\b\w/g, (letter) => letter.toUpperCase())
+      ).join(' ')
     : params.new === 'true'
     ? 'New Arrivals'
-    : 'All Jerseys'
+    : 'All Products'
 
   return (
     <div style={{ background: 'var(--bg)', minHeight: '100vh' }}>

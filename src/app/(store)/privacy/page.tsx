@@ -29,7 +29,7 @@ export default function PrivacyPage() {
           <ul className="list-disc pl-6 mt-2 space-y-1">
             <li><strong>Account information</strong> — name, email, phone number, password (hashed) when you create an account.</li>
             <li><strong>Order information</strong> — shipping address, billing address, items ordered, payment method.</li>
-            <li><strong>Payment information</strong> — processed by our payment partners (e.g. Razorpay). We do not store full card or banking details on our servers.</li>
+            <li><strong>Payment information</strong> — processed securely by Stripe. We do not store full card or banking details on our servers.</li>
             <li><strong>Usage and device data</strong> — IP address, browser type, pages visited, and approximate location, collected through cookies and similar technologies.</li>
             <li><strong>Communications</strong> — messages you send us by email, contact form, chat, or social media.</li>
           </ul>

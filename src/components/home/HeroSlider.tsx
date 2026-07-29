@@ -10,8 +10,8 @@ import type { HomeBanner } from '@/lib/queries/banners'
 const FALLBACK: HomeBanner[] = [
   {
     id: 'fallback',
-    title: 'Worn By Legends. Built For Fans.',
-    subtitle: 'Official & replica jerseys for cricket, football and IPL — every team, every size, delivered fast across India.',
+    title: 'Your team. Your colours. Your jersey.',
+    subtitle: 'Football and cricket jerseys made for the loudest fans — plus keychains, trophies and match-day accessories.',
     image_url:
       'https://cdn.shopify.com/s/files/1/0627/2938/8118/files/TP0293ID__RNVL_B.jpg?v=1772786445',
     cta_text: 'Shop the Collection',
@@ -38,7 +38,7 @@ export default function HeroSlider({ banners }: { banners: HomeBanner[] }) {
       style={{ background: 'var(--bg-raised)' }}
       aria-roledescription="carousel"
     >
-      <div className="relative h-[62vh] min-h-[420px] max-h-[720px]">
+      <div className="relative h-[68vh] min-h-[480px] max-h-[760px]">
         {slides.map((slide, i) => {
           const active = i === index
           const inner = (
@@ -55,7 +55,7 @@ export default function HeroSlider({ banners }: { banners: HomeBanner[] }) {
                 className="absolute inset-0"
                 style={{
                   background:
-                    'linear-gradient(90deg, rgba(20,15,10,0.72) 0%, rgba(20,15,10,0.38) 42%, rgba(20,15,10,0.05) 70%)',
+                    'linear-gradient(90deg, rgba(10,10,10,0.84) 0%, rgba(10,10,10,0.54) 42%, rgba(10,10,10,0.08) 76%)',
                 }}
               />
               <div className="relative h-full max-w-7xl mx-auto px-6 sm:px-10 flex flex-col justify-center">
@@ -64,13 +64,13 @@ export default function HeroSlider({ banners }: { banners: HomeBanner[] }) {
                     className="text-[11px] font-semibold tracking-[0.18em] uppercase mb-4"
                     style={{ color: '#fff', opacity: 0.85, fontFamily: 'var(--font-inter)' }}
                   >
-                    The Jersey Wala
+                    India&apos;s fanwear destination
                   </p>
                   <h1
-                    className="text-white font-bold uppercase leading-[0.92] mb-5"
+                    className="text-white font-normal uppercase leading-[0.88] mb-5"
                     style={{
-                      fontSize: 'clamp(38px, 6.5vw, 82px)',
-                      letterSpacing: '-0.02em',
+                      fontSize: 'clamp(54px, 8vw, 104px)',
+                      letterSpacing: '0.01em',
                       fontFamily: 'var(--font-oswald)',
                     }}
                   >
@@ -87,7 +87,7 @@ export default function HeroSlider({ banners }: { banners: HomeBanner[] }) {
                   {slide.cta_text && slide.cta_link && (
                     <Link
                       href={slide.cta_link}
-                      className="inline-flex items-center gap-2 px-8 py-4 rounded-full text-[14px] font-semibold transition-transform hover:scale-[1.03]"
+                      className="inline-flex items-center gap-2 px-8 py-4 rounded-md text-[13px] font-extrabold uppercase tracking-[0.06em] transition-transform hover:translate-y-[-2px]"
                       style={{ background: 'var(--red)', color: '#fff', fontFamily: 'var(--font-inter)' }}
                     >
                       {slide.cta_text} <ArrowRight size={15} />

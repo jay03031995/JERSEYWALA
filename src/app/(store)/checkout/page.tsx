@@ -123,7 +123,7 @@ export default function CheckoutPage() {
     })
     const data = await orderRes.json()
     if (data.error || !data.orderId) throw new Error(data.error ?? 'Failed to create order')
-    return data as { orderId: string; orderNumber: string }
+    return data as { orderId: string; orderNumber: string; amount: number }
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -140,51 +140,22 @@ export default function CheckoutPage() {
         return
       }
 
-      // ── Online: Razorpay flow ──
+      // ── Online: Stripe-hosted Checkout ──
       const { orderId } = await createOrder()
 
       const payRes = await fetch('/api/payment/create', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ amount: grandTotal, orderId }),
+        body: JSON.stringify({ orderId }),
       })
       const payText = await payRes.text()
-      let payJson: { razorpayOrderId?: string; error?: string } = {}
+      let payJson: { checkoutUrl?: string; error?: string } = {}
       try { payJson = payText ? JSON.parse(payText) : {} } catch { /* non-JSON response */ }
-      const { razorpayOrderId, error: payErr } = payJson
-      if (payErr || !razorpayOrderId) {
+      const { checkoutUrl, error: payErr } = payJson
+      if (payErr || !checkoutUrl) {
         throw new Error(payErr ?? `Payment initiation failed (HTTP ${payRes.status})`)
       }
-
-      const script = document.createElement('script')
-      script.src = 'https://checkout.razorpay.com/v1/checkout.js'
-      document.body.appendChild(script)
-      script.onload = () => {
-        // @ts-expect-error Razorpay global
-        new window.Razorpay({
-          key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID,
-          amount: grandTotal * 100,
-          currency: 'INR',
-          name: 'The Jersey Wala',
-          description: `${items.length} jersey${items.length > 1 ? 's' : ''}`,
-          order_id: razorpayOrderId,
-          handler: async (response: { razorpay_order_id: string; razorpay_payment_id: string; razorpay_signature: string }) => {
-            const v = await fetch('/api/payment/verify', {
-              method: 'POST', headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ ...response, orderId }),
-            })
-            const { success } = await v.json()
-            if (success) { clearCart(); router.push('/checkout/success') }
-            else toast.error('Payment verification failed. Contact support.')
-          },
-          prefill: { name: address.full_name, contact: address.phone },
-          theme: { color: '#E8192C' },
-          modal: { ondismiss: () => setLoading(false) },
-        }).open()
-      }
-      script.onerror = () => {
-        throw new Error('Could not load payment gateway. Check your connection.')
-      }
+      window.location.assign(checkoutUrl)
     } catch (err) {
       toast.error(err instanceof Error ? err.message : 'Something went wrong. Try again.')
       setLoading(false)
@@ -466,7 +437,7 @@ export default function CheckoutPage() {
               <p className="text-[11px]" style={{ color: 'var(--fg-sub)', fontFamily: 'var(--font-inter)' }}>
                 {paymentMethod === 'cod'
                   ? 'COD · Pay on delivery · No advance required'
-                  : 'Razorpay · UPI · Cards · Wallets'}
+                  : 'Stripe secure checkout · Cards'}
               </p>
             </div>
           </div>

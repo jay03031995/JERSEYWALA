@@ -57,7 +57,7 @@ export default function TermsPage() {
           <h2 className="text-xl font-semibold mb-3">4. Orders and payment</h2>
           <p>
             Placing an order constitutes an offer to buy. The contract is formed only when we
-            confirm dispatch. Payments are processed by third-party gateways (such as Razorpay) and
+            confirm dispatch. Online payments are processed securely by Stripe and
             we do not store full card or banking details on our servers. Cash on Delivery may be
             available for select pin codes at our discretion.
           </p>

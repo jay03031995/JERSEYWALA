@@ -1,20 +1,21 @@
 import type { Metadata } from 'next'
-import { Barlow_Condensed, Inter } from 'next/font/google'
+import { Bebas_Neue, Manrope } from 'next/font/google'
 import Script from 'next/script'
 import './globals.css'
 import ConditionalLayout from '@/components/layout/ConditionalLayout'
 import { Toaster } from 'react-hot-toast'
 
-const barlowCondensed = Barlow_Condensed({
+const bebasNeue = Bebas_Neue({
   subsets: ['latin'],
-  weight: ['400', '500', '600', '700', '800', '900'],
-  variable: '--font-oswald',  // keep same CSS var so all existing usage auto-updates
+  weight: '400',
+  variable: '--font-oswald',
+  display: 'swap',
 })
 
-const inter = Inter({
+const manrope = Manrope({
   subsets: ['latin'],
-  weight: ['300', '400', '500', '600'],
   variable: '--font-inter',
+  display: 'swap',
 })
 
 const SITE_URL = 'https://thejerseywala.in'
@@ -127,12 +128,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en" data-theme="light" suppressHydrationWarning>
       <head>
-        {/* Prevent flash of wrong theme — must be inline, runs before paint */}
-        <script
-          dangerouslySetInnerHTML={{
-            __html: `(function(){try{var t=localStorage.getItem('theme');if(t)document.documentElement.setAttribute('data-theme',t)}catch(e){}})()`,
-          }}
-        />
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
@@ -144,7 +139,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           crossOrigin="anonymous"
         />
       </head>
-      <body className={`${barlowCondensed.variable} ${inter.variable} min-h-screen flex flex-col`}>
+      <body className={`${bebasNeue.variable} ${manrope.variable} min-h-screen flex flex-col`}>
         <ConditionalLayout>{children}</ConditionalLayout>
         {/* Google AdSense — loaded after hydration to avoid script tag conflict */}
         <Script

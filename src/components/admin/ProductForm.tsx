@@ -5,7 +5,9 @@ import { useRouter } from 'next/navigation'
 import toast from 'react-hot-toast'
 import { Plus, Trash2, ImagePlus } from 'lucide-react'
 
-const SIZES = ['XS', 'S', 'M', 'L', 'XL', 'XXL', '3XL']
+const SIZES = ['OS', 'XS', 'S', 'M', 'L', 'XL', 'XXL', '3XL']
+const SPORT_TAGS = ['football', 'cricket']
+const CATEGORY_TAGS = ['jersey', 'keychain', 'trophy', 'tackle']
 const JERSEY_TYPES = ['home', 'away', 'third', 'training', 'goalkeeper', 'limited']
 const EDITIONS = ['official', 'fan_edition', 'replica']
 
@@ -70,6 +72,14 @@ export default function ProductForm({ teams, initial }: { teams: Team[]; initial
   const [activeTab, setActiveTab] = useState<'general' | 'media' | 'variants' | 'seo'>('general')
 
   const set = (key: keyof ProductData, val: unknown) => setForm((f) => ({ ...f, [key]: val }))
+  const tags = form.tags.split(',').map((tag) => tag.trim().toLowerCase()).filter(Boolean)
+  const sportTag = SPORT_TAGS.find((tag) => tags.includes(tag)) ?? ''
+  const categoryTag = CATEGORY_TAGS.find((tag) => tags.includes(tag)) ?? 'jersey'
+  const setGroupedTag = (group: string[], value: string) => {
+    const next = tags.filter((tag) => !group.includes(tag))
+    if (value) next.push(value)
+    set('tags', [...new Set(next)].join(', '))
+  }
 
   const handleNameChange = (name: string) => {
     setForm((f) => ({ ...f, name, slug: f.slug || slugify(name) }))
@@ -288,6 +298,33 @@ export default function ProductForm({ teams, initial }: { teams: Team[]; initial
             <p className="text-[11px] font-bold uppercase tracking-wider mb-4" style={labelStyle}>Product Details</p>
             <div className="grid grid-cols-2 gap-4">
               <div>
+                <label className="block text-[11px] font-medium mb-1.5 uppercase tracking-wider" style={labelStyle}>Store Section *</label>
+                <select
+                  value={sportTag}
+                  onChange={(e) => setGroupedTag(SPORT_TAGS, e.target.value)}
+                  className="w-full px-3 py-2.5 rounded-xl text-[13px] outline-none"
+                  style={inputStyle}
+                >
+                  <option value="">Select sport</option>
+                  <option value="football">Football</option>
+                  <option value="cricket">Cricket</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-[11px] font-medium mb-1.5 uppercase tracking-wider" style={labelStyle}>Product Category *</label>
+                <select
+                  value={categoryTag}
+                  onChange={(e) => setGroupedTag(CATEGORY_TAGS, e.target.value)}
+                  className="w-full px-3 py-2.5 rounded-xl text-[13px] outline-none"
+                  style={inputStyle}
+                >
+                  <option value="jersey">Jersey</option>
+                  <option value="keychain">Keychain</option>
+                  <option value="trophy">Trophy</option>
+                  <option value="tackle">Tackle / Accessories</option>
+                </select>
+              </div>
+              <div>
                 <label className="block text-[11px] font-medium mb-1.5 uppercase tracking-wider" style={labelStyle}>Team</label>
                 <select
                   value={form.team_id}
@@ -363,7 +400,7 @@ export default function ProductForm({ teams, initial }: { teams: Team[]; initial
               <input
                 value={form.tags}
                 onChange={(e) => set('tags', e.target.value)}
-                placeholder="e.g. football, real-madrid, 2025-26"
+                placeholder="Extra tags, e.g. real-madrid, 2025-26"
                 className="w-full px-3 py-2.5 rounded-xl text-[13px] outline-none"
                 style={inputStyle}
               />
@@ -428,6 +465,9 @@ export default function ProductForm({ teams, initial }: { teams: Team[]; initial
         <div className="rounded-2xl overflow-hidden" style={{ background: 'var(--bg-card)', border: '1px solid var(--border)' }}>
           <div className="px-5 py-4" style={{ borderBottom: '1px solid var(--border)' }}>
             <p className="text-[11px] font-bold uppercase tracking-wider" style={labelStyle}>Size Variants & Stock</p>
+            <p className="text-[11px] mt-1" style={{ color: 'var(--fg-sub)', fontFamily: 'var(--font-inter)' }}>
+              Use OS (one size) for keychains, trophies and other accessories.
+            </p>
           </div>
           <table className="w-full">
             <thead>
