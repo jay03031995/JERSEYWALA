@@ -1,7 +1,10 @@
+'use client'
+
 import Link from 'next/link'
 import { ArrowRight } from 'lucide-react'
 import ProductGrid from '@/components/product/ProductGrid'
 import type { Product } from '@/types/database'
+import { productMatchesSport, useSportPreference } from '@/components/sport/SportPreference'
 
 type Props = {
   eyebrow?: string
@@ -25,7 +28,9 @@ export default function ProductSection({
   tinted = false,
   id,
 }: Props) {
-  if (!products || products.length === 0) return null
+  const { sport } = useSportPreference()
+  const visibleProducts = products.filter((product) => productMatchesSport(product, sport))
+  if (visibleProducts.length === 0) return null
 
   return (
     <section
@@ -63,7 +68,7 @@ export default function ProductSection({
             </Link>
           )}
         </div>
-        <ProductGrid products={products} />
+        <ProductGrid products={visibleProducts} />
       </div>
     </section>
   )

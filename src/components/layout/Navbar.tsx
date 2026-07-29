@@ -6,6 +6,7 @@ import { usePathname } from 'next/navigation'
 import { ShoppingBag, Heart, Search, Menu, X, User, ChevronDown } from 'lucide-react'
 import { useCartStore } from '@/store/cartStore'
 import { useWishlistStore } from '@/store/wishlistStore'
+import { HeaderSportToggle } from '@/components/sport/SportPreference'
 
 const NAV = [
   { label: 'New Drops', href: '/shop?new=true', accent: true },
@@ -140,6 +141,8 @@ export default function Navbar() {
           </span>
         </Link>
 
+        <HeaderSportToggle />
+
         {/* Desktop Nav */}
         <nav className="hidden xl:flex items-center gap-0.5 flex-1">
           {navItems.map((item) =>
@@ -195,7 +198,7 @@ export default function Navbar() {
             <Search size={17} />
           </button>
 
-          <Link href="/account/wishlist" className="relative p-2 rounded-lg transition-colors" style={{ color: 'var(--fg-muted)' }}>
+          <Link href="/account/wishlist" className="hidden sm:block relative p-2 rounded-lg transition-colors" style={{ color: 'var(--fg-muted)' }}>
             <Heart size={17} />
             {wishlistCount > 0 && (
               <span className="absolute top-1.5 right-1.5 w-3 h-3 rounded-full text-[9px] font-bold flex items-center justify-center text-white" style={{ background: 'var(--red)' }}>
@@ -213,7 +216,7 @@ export default function Navbar() {
             )}
           </button>
 
-          <Link href="/account" className="p-2 rounded-lg transition-colors" style={{ color: 'var(--fg-muted)' }}>
+          <Link href="/account" className="hidden sm:block p-2 rounded-lg transition-colors" style={{ color: 'var(--fg-muted)' }}>
             <User size={17} />
           </Link>
 

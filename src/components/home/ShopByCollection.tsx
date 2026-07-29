@@ -1,4 +1,7 @@
+'use client'
+
 import Link from 'next/link'
+import { useSportPreference } from '@/components/sport/SportPreference'
 
 export type CollectionTile = {
   label: string
@@ -10,7 +13,14 @@ export type CollectionTile = {
 // real sports/leagues + representative product images, so this stays purely
 // presentational and fully backend-driven.
 export default function ShopByCollection({ tiles }: { tiles: CollectionTile[] }) {
-  if (!tiles || tiles.length === 0) return null
+  const { sport } = useSportPreference()
+  const visibleTiles = tiles.filter((tile) => {
+    const text = `${tile.label} ${tile.href}`.toLowerCase()
+    return sport === 'cricket'
+      ? text.includes('cricket') || text.includes('ipl')
+      : text.includes('football')
+  })
+  if (visibleTiles.length === 0) return null
 
   return (
     <section style={{ background: 'var(--bg)', borderTop: '1px solid var(--border)' }}>
@@ -34,7 +44,7 @@ export default function ShopByCollection({ tiles }: { tiles: CollectionTile[] })
           className="flex gap-6 sm:gap-8 overflow-x-auto pb-3 sm:justify-center"
           style={{ scrollbarWidth: 'none' }}
         >
-          {tiles.map((tile) => (
+          {visibleTiles.map((tile) => (
             <Link
               key={tile.label + tile.href}
               href={tile.href}

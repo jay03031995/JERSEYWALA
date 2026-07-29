@@ -5,6 +5,7 @@ import Navbar from '@/components/layout/Navbar'
 import Footer from '@/components/layout/Footer'
 import CartDrawer from '@/components/cart/CartDrawer'
 import Chatbot from '@/components/ui/Chatbot'
+import { SportPreferenceProvider } from '@/components/sport/SportPreference'
 
 export default function ConditionalLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
@@ -15,12 +16,12 @@ export default function ConditionalLayout({ children }: { children: React.ReactN
   }
 
   return (
-    <>
+    <SportPreferenceProvider>
       <Navbar />
       <main className="flex-1">{children}</main>
       <Footer />
       <CartDrawer />
       <Chatbot />
-    </>
+    </SportPreferenceProvider>
   )
 }

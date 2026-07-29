@@ -1,12 +1,11 @@
 'use client'
 
-import { useMemo, useState } from 'react'
+import { useMemo } from 'react'
 import Link from 'next/link'
 import { ArrowRight, Award, KeyRound, Shield, Shirt, Trophy } from 'lucide-react'
 import ProductGrid from '@/components/product/ProductGrid'
 import type { Product } from '@/types/database'
-
-type Sport = 'football' | 'cricket'
+import { productMatchesSport, useSportPreference } from '@/components/sport/SportPreference'
 
 const SHOP = {
   football: {
@@ -38,36 +37,16 @@ const SHOP = {
 }
 
 export default function SportShopToggle({ products }: { products: Product[] }) {
-  const [sport, setSport] = useState<Sport>('football')
+  const { sport } = useSportPreference()
   const content = SHOP[sport]
 
   const filtered = useMemo(() => {
-    const matches = products.filter((product) => {
-      const slug = product.team?.league?.sport?.slug?.toLowerCase()
-      const tags = (product.tags ?? []).map((tag) => tag.toLowerCase())
-      if (sport === 'cricket') return slug === 'cricket' || slug === 'ipl' || tags.includes('cricket') || tags.includes('ipl')
-      return slug === 'football' || tags.includes('football')
-    })
-    return (matches.length > 0 ? matches : products).slice(0, 8)
+    return products.filter((product) => productMatchesSport(product, sport)).slice(0, 8)
   }, [products, sport])
 
   return (
     <section className="sport-shop" aria-labelledby="sport-shop-heading">
       <div className="sport-shop__inner">
-        <div className="sport-switcher" role="group" aria-label="Choose a sport">
-          {(Object.keys(SHOP) as Sport[]).map((key) => (
-            <button
-              key={key}
-              type="button"
-              onClick={() => setSport(key)}
-              className={sport === key ? 'is-active' : ''}
-              aria-pressed={sport === key}
-            >
-              {SHOP[key].label}
-            </button>
-          ))}
-        </div>
-
         <div className="sport-shop__heading">
           <div>
             <p className="section-kicker">{content.eyebrow}</p>

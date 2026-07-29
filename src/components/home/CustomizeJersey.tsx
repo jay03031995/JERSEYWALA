@@ -1,11 +1,12 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { ShoppingBag, PenLine } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { useCartStore } from '@/store/cartStore'
 import { formatPrice } from '@/lib/utils'
 import type { Product } from '@/types/database'
+import { productMatchesSport, useSportPreference } from '@/components/sport/SportPreference'
 
 const NAME_MAX = 12
 const NUMBER_MAX = 2
@@ -19,13 +20,21 @@ function primaryImage(p: Product): string {
 // and the real variant id for checkout. Preview is a text overlay on the
 // product image (approximation, not a true jersey mockup).
 export default function CustomizeJersey({ products }: { products: Product[] }) {
-  const usable = products.filter((p) => (p.variants?.length ?? 0) > 0)
+  const { sport } = useSportPreference()
+  const usable = products.filter(
+    (product) => productMatchesSport(product, sport) && (product.variants?.length ?? 0) > 0,
+  )
   const addItem = useCartStore((s) => s.addItem)
 
   const [selectedId, setSelectedId] = useState(usable[0]?.id ?? '')
   const [name, setName] = useState('')
   const [number, setNumber] = useState('')
   const [size, setSize] = useState('')
+
+  useEffect(() => {
+    setSelectedId('')
+    setSize('')
+  }, [sport])
 
   if (usable.length === 0) return null
 

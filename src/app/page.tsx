@@ -93,7 +93,11 @@ export default async function HomePage() {
     <div style={{ background: 'var(--bg)', color: 'var(--fg)' }}>
       <HomePopup />
 
-      <HeroSlider banners={heroBanners} />
+      <HeroSlider
+        banners={heroBanners}
+        footballImage={imgOf(findBySport('football'))}
+        cricketImage={imgOf(findBySport('cricket')) ?? imgOf(findByLeague('ipl-2026'))}
+      />
 
       <SportShopToggle products={pool} />
 
