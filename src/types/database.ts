@@ -127,8 +127,9 @@ export interface Order {
   payment_status: PaymentStatus
   payment_method?: string
   payment_reference?: string
-  stripe_checkout_session_id?: string
-  stripe_payment_intent_id?: string
+  cashfree_order_id?: string
+  cashfree_cf_order_id?: string
+  cashfree_payment_id?: string
   inventory_reserved?: boolean
   subtotal: number
   shipping_cost: number

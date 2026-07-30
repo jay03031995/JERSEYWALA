@@ -10,7 +10,8 @@ export default async function SettingsPage() {
     : { data: null }
 
   const delhiveryConfigured = !!process.env.DELHIVERY_API_TOKEN
-  const stripeConfigured = !!process.env.STRIPE_SECRET_KEY
+  const cashfreeConfigured =
+    !!process.env.CASHFREE_CLIENT_ID && !!process.env.CASHFREE_CLIENT_SECRET
 
   return (
     <div className="px-6 py-8 max-w-3xl mx-auto">
@@ -55,7 +56,7 @@ export default async function SettingsPage() {
         </p>
         <div className="space-y-3">
           {[
-            { name: 'Stripe (Payments)', env: 'STRIPE_SECRET_KEY', configured: stripeConfigured, desc: 'Secure hosted checkout and card payments' },
+            { name: 'Cashfree (Payments)', env: 'CASHFREE_CLIENT_ID', configured: cashfreeConfigured, desc: 'UPI, cards, net banking and wallet payments' },
             { name: 'Delhivery (Shipping)', env: 'DELHIVERY_API_TOKEN', configured: delhiveryConfigured, desc: 'Real-time shipment tracking API' },
             { name: 'Supabase (Database)', env: 'NEXT_PUBLIC_SUPABASE_URL', configured: true, desc: 'Database & auth' },
           ].map(({ name, env, configured, desc }) => (

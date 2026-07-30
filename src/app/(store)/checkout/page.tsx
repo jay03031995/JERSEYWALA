@@ -62,6 +62,39 @@ function Field({
 
 type PaymentMethod = 'online' | 'cod'
 
+type CashfreeInstance = {
+  checkout: (options: {
+    paymentSessionId: string
+    redirectTarget: '_self'
+  }) => Promise<{ error?: { message?: string } } | void>
+}
+
+declare global {
+  interface Window {
+    Cashfree?: (options: {
+      mode: 'sandbox' | 'production'
+    }) => CashfreeInstance
+  }
+}
+
+let cashfreeScriptPromise: Promise<void> | null = null
+
+function loadCashfreeSdk() {
+  if (window.Cashfree) return Promise.resolve()
+  if (cashfreeScriptPromise) return cashfreeScriptPromise
+
+  cashfreeScriptPromise = new Promise<void>((resolve, reject) => {
+    const script = document.createElement('script')
+    script.src = 'https://sdk.cashfree.com/js/v3/cashfree.js'
+    script.async = true
+    script.onload = () => resolve()
+    script.onerror = () => reject(new Error('Could not load Cashfree checkout'))
+    document.head.appendChild(script)
+  })
+
+  return cashfreeScriptPromise
+}
+
 export default function CheckoutPage() {
   const { items, total, clearCart } = useCartStore()
   const router = useRouter()
@@ -140,7 +173,7 @@ export default function CheckoutPage() {
         return
       }
 
-      // ── Online: Stripe-hosted Checkout ──
+      // ── Online: Cashfree-hosted Checkout ──
       const { orderId } = await createOrder()
 
       const payRes = await fetch('/api/payment/create', {
@@ -149,13 +182,26 @@ export default function CheckoutPage() {
         body: JSON.stringify({ orderId }),
       })
       const payText = await payRes.text()
-      let payJson: { checkoutUrl?: string; error?: string } = {}
+      let payJson: {
+        paymentSessionId?: string
+        mode?: 'sandbox' | 'production'
+        error?: string
+      } = {}
       try { payJson = payText ? JSON.parse(payText) : {} } catch { /* non-JSON response */ }
-      const { checkoutUrl, error: payErr } = payJson
-      if (payErr || !checkoutUrl) {
+      const { paymentSessionId, mode, error: payErr } = payJson
+      if (payErr || !paymentSessionId || !mode) {
         throw new Error(payErr ?? `Payment initiation failed (HTTP ${payRes.status})`)
       }
-      window.location.assign(checkoutUrl)
+
+      await loadCashfreeSdk()
+      if (!window.Cashfree) throw new Error('Cashfree checkout is unavailable')
+      const result = await window.Cashfree({ mode }).checkout({
+        paymentSessionId,
+        redirectTarget: '_self',
+      })
+      if (result?.error) {
+        throw new Error(result.error.message ?? 'Could not open Cashfree checkout')
+      }
     } catch (err) {
       toast.error(err instanceof Error ? err.message : 'Something went wrong. Try again.')
       setLoading(false)
@@ -437,7 +483,7 @@ export default function CheckoutPage() {
               <p className="text-[11px]" style={{ color: 'var(--fg-sub)', fontFamily: 'var(--font-inter)' }}>
                 {paymentMethod === 'cod'
                   ? 'COD · Pay on delivery · No advance required'
-                  : 'Stripe secure checkout · Cards'}
+                  : 'Cashfree secure checkout · UPI, cards, net banking & wallets'}
               </p>
             </div>
           </div>

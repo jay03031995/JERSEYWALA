@@ -32,8 +32,8 @@ const BOT_RESPONSES: { patterns: RegExp[]; reply: string }[] = [
     reply: '📏 **Size Guide:**\n- S → Chest 36–38"\n- M → Chest 38–40"\n- L → Chest 40–42"\n- XL → Chest 42–44"\n- XXL → Chest 44–46"\n\nWhen in doubt, go one size up — jerseys run a little snug!',
   },
   {
-    patterns: [/pay/i, /payment/i, /upi/i, /card/i, /wallet/i, /stripe/i],
-    reply: '💳 Online card payments are securely processed through **Stripe Checkout**. Cash on Delivery is also available on eligible orders. We never store full card details on our servers.',
+    patterns: [/pay/i, /payment/i, /upi/i, /card/i, /wallet/i, /cashfree/i],
+    reply: '💳 UPI, card, net banking and wallet payments are securely processed through **Cashfree Checkout**. Cash on Delivery is also available on eligible orders. We never store full card details on our servers.',
   },
   {
     patterns: [/track/i, /order status/i, /where is my/i, /where.*order/i],
