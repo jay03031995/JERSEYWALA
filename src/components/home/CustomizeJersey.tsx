@@ -12,7 +12,7 @@ const NAME_MAX = 12
 const NUMBER_MAX = 2
 
 function primaryImage(p: Product): string {
-  return p.images?.find((i) => i.is_primary)?.url ?? p.images?.[0]?.url ?? '/placeholder-jersey.png'
+  return p.images?.find((i) => i.is_primary)?.url ?? p.images?.[0]?.url ?? '/images/jersey-fallback.jpg'
 }
 
 // Personalise-your-jersey conversion block. Fully client-side: builds a cart
@@ -94,7 +94,11 @@ export default function CustomizeJersey({ products }: { products: Product[] }) {
             <img
               src={primaryImage(product)}
               alt={product.name}
-              className="absolute inset-0 w-full h-full object-cover"
+              className="absolute inset-0 w-full h-full object-contain"
+              onError={(event) => {
+                event.currentTarget.onerror = null
+                event.currentTarget.src = '/images/jersey-fallback.jpg'
+              }}
             />
             <div className="absolute inset-0" style={{ background: 'rgba(20,15,10,0.28)' }} />
             <div className="relative z-10 flex flex-col items-center text-center px-4">
@@ -140,7 +144,16 @@ export default function CustomizeJersey({ products }: { products: Product[] }) {
                   aria-label={p.name}
                 >
                   {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={primaryImage(p)} alt={p.name} className="w-full h-full object-cover" loading="lazy" />
+                  <img
+                    src={primaryImage(p)}
+                    alt={p.name}
+                    className="w-full h-full object-contain"
+                    loading="lazy"
+                    onError={(event) => {
+                      event.currentTarget.onerror = null
+                      event.currentTarget.src = '/images/jersey-fallback.jpg'
+                    }}
+                  />
                 </button>
               ))}
             </div>

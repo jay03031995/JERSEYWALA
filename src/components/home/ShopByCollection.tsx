@@ -42,7 +42,14 @@ export default function ShopByCollection({ tiles }: { tiles: CollectionTile[] })
               <span className="home-collections__circle">
                 {image ? (
                   // eslint-disable-next-line @next/next/no-img-element
-                  <img src={image} alt="" />
+                  <img
+                    src={image}
+                    alt=""
+                    onError={(event) => {
+                      event.currentTarget.onerror = null
+                      event.currentTarget.src = '/images/jersey-fallback.jpg'
+                    }}
+                  />
                 ) : Icon ? <Icon size={34} strokeWidth={1.35} /> : null}
               </span>
               <strong>{label}</strong>

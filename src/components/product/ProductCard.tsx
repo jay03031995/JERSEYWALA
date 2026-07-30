@@ -18,7 +18,7 @@ export default function ProductCard({ product }: { product: Product }) {
   const primaryImage =
     product.images?.find((img) => img.is_primary)?.url ??
     product.images?.[0]?.url ??
-    '/placeholder-jersey.png'
+    '/images/jersey-fallback.jpg'
 
   const inStock = product.variants?.some((v) => v.stock_quantity > 0) ?? false
   const discount = getDiscountPercent(product.base_price, product.compare_price ?? 0)
@@ -93,6 +93,10 @@ export default function ProductCard({ product }: { product: Product }) {
             src={primaryImage}
             alt={product.name}
             loading="lazy"
+            onError={(event) => {
+              event.currentTarget.onerror = null
+              event.currentTarget.src = '/images/jersey-fallback.jpg'
+            }}
           />
         </div>
       </Link>
