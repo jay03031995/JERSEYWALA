@@ -8,33 +8,13 @@ import { formatPrice } from '@/lib/utils'
 import type { Product } from '@/types/database'
 import { productMatchesSport, type StoreSport, useSportPreference } from '@/components/sport/SportPreference'
 import SectionHeader from '@/components/home/SectionHeader'
+import ResilientProductImage, { firstProductImage } from '@/components/product/ResilientProductImage'
 
-const FALLBACK_IMAGE = '/images/jersey-fallback.jpg'
 const NAME_MAX = 12
 const NUMBER_MAX = 2
 
-function primaryImage(product: Product): string {
-  return product.images?.find((image) => image.is_primary)?.url ??
-    product.images?.[0]?.url ??
-    FALLBACK_IMAGE
-}
-
 function ProductImage({ product, className = '' }: { product: Product; className?: string }) {
-  return (
-    // eslint-disable-next-line @next/next/no-img-element
-    <img
-      src={primaryImage(product)}
-      alt={product.name}
-      width="640"
-      height="640"
-      className={className}
-      referrerPolicy="no-referrer"
-      onError={(event) => {
-        event.currentTarget.onerror = null
-        event.currentTarget.src = FALLBACK_IMAGE
-      }}
-    />
-  )
+  return <ResilientProductImage key={product.id} product={product} width={640} height={640} className={className} />
 }
 
 function JerseyConfigurator({ products, sport }: { products: Product[]; sport: StoreSport }) {
@@ -68,7 +48,7 @@ function JerseyConfigurator({ products, sport }: { products: Product[]; sport: S
       size,
       price: product.base_price + variant.additional_price,
       quantity: 1,
-      imageUrl: primaryImage(product),
+      imageUrl: firstProductImage(product),
       teamName: product.team?.name ?? '',
     })
     toast.success('Custom jersey added to bag')

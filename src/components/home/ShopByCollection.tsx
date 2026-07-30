@@ -20,7 +20,7 @@ export default function ShopByCollection({ tiles }: { tiles: CollectionTile[] })
   })
 
   const collections = [
-    { label: sport === 'football' ? 'Football' : 'Cricket', href: `/sport/${sport}`, image: sportTile?.image },
+    { label: sport === 'football' ? 'Football' : 'Cricket', href: `/sport/${sport}`, image: sportTile?.image, Icon: Shirt },
     { label: 'Jerseys', href: `/shop?sport=${sport}&category=jersey`, Icon: Shirt },
     { label: 'Trophies', href: `/shop?sport=${sport}&category=trophy`, Icon: Award },
     { label: 'Keychains', href: `/shop?sport=${sport}&category=keychain`, Icon: KeyRound },
@@ -40,17 +40,17 @@ export default function ShopByCollection({ tiles }: { tiles: CollectionTile[] })
           {collections.map(({ label, href, image, Icon }, index) => (
             <Link key={label} href={href} className={index === 0 ? 'is-active' : ''}>
               <span className="home-collections__circle">
-                {image ? (
+                {Icon && <Icon size={34} strokeWidth={1.35} />}
+                {image && (
                   // eslint-disable-next-line @next/next/no-img-element
                   <img
                     src={image}
                     alt=""
                     onError={(event) => {
-                      event.currentTarget.onerror = null
-                      event.currentTarget.src = '/images/jersey-fallback.jpg'
+                      event.currentTarget.hidden = true
                     }}
                   />
-                ) : Icon ? <Icon size={34} strokeWidth={1.35} /> : null}
+                )}
               </span>
               <strong>{label}</strong>
             </Link>

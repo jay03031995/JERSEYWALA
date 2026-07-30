@@ -2,8 +2,10 @@
 
 import Link from 'next/link'
 import { ArrowRight, Award, KeyRound, Shield, Shirt, Trophy } from 'lucide-react'
-import { useSportPreference } from '@/components/sport/SportPreference'
+import { productMatchesSport, useSportPreference } from '@/components/sport/SportPreference'
 import SectionHeader from '@/components/home/SectionHeader'
+import ResilientProductImage from '@/components/product/ResilientProductImage'
+import type { Product } from '@/types/database'
 
 const SHOP = {
   football: {
@@ -34,9 +36,10 @@ const SHOP = {
   },
 }
 
-export default function SportShopToggle() {
+export default function SportShopToggle({ products }: { products: Product[] }) {
   const { sport } = useSportPreference()
   const content = SHOP[sport]
+  const visualProduct = products.find((product) => productMatchesSport(product, sport))
 
   return (
     <section className="sport-shop" aria-labelledby="sport-shop-heading">
@@ -54,14 +57,14 @@ export default function SportShopToggle() {
           {content.categories.map(({ label, description, query, icon: Icon }, index) => (
             <Link key={label} href={query} className={index === 0 ? 'is-featured' : ''}>
               <span className="sport-category__icon"><Icon size={index === 0 ? 32 : 25} strokeWidth={1.65} /></span>
-              {index === 0 && (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img
+              {index === 0 && visualProduct && (
+                <ResilientProductImage
+                  key={visualProduct.id}
                   className="sport-category__visual"
-                  src="/images/jersey-fallback.jpg"
-                  width="460"
-                  height="460"
-                  alt=""
+                  product={visualProduct}
+                  width={460}
+                  height={460}
+                  decorative
                 />
               )}
               <span className="sport-category__copy">

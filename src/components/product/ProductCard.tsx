@@ -7,8 +7,7 @@ import { useCartStore } from '@/store/cartStore'
 import { useWishlistStore } from '@/store/wishlistStore'
 import { formatPrice, getDiscountPercent } from '@/lib/utils'
 import type { Product } from '@/types/database'
-
-const FALLBACK_IMAGE = '/images/jersey-fallback.jpg'
+import ResilientProductImage, { firstProductImage } from './ResilientProductImage'
 
 export default function ProductCard({ product }: { product: Product }) {
   const [selectedSize, setSelectedSize] = useState('')
@@ -16,10 +15,7 @@ export default function ProductCard({ product }: { product: Product }) {
   const addItem = useCartStore((state) => state.addItem)
   const { toggle, has } = useWishlistStore()
 
-  const image =
-    product.images?.find((item) => item.is_primary)?.url ??
-    product.images?.[0]?.url ??
-    FALLBACK_IMAGE
+  const image = firstProductImage(product)
   const variants = product.variants ?? []
   const availableVariants = variants.filter((variant) => variant.stock_quantity > 0)
   const inStock = availableVariants.length > 0
@@ -65,22 +61,7 @@ export default function ProductCard({ product }: { product: Product }) {
           <Heart aria-hidden="true" size={17} fill={isWishlisted ? 'currentColor' : 'none'} />
         </button>
         <Link href={`/shop/${product.slug}`} aria-label={`View ${product.name}`}>
-          {/* Plain img is intentional: imported commerce images can originate
-              from domains not known at build time. The fixed media box prevents CLS. */}
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src={image}
-            alt={product.images?.[0]?.alt_text || product.name}
-            width="480"
-            height="480"
-            loading="lazy"
-            decoding="async"
-            referrerPolicy="no-referrer"
-            onError={(event) => {
-              event.currentTarget.onerror = null
-              event.currentTarget.src = FALLBACK_IMAGE
-            }}
-          />
+          <ResilientProductImage product={product} />
         </Link>
       </div>
 

@@ -92,7 +92,7 @@ export default async function HomePage() {
         products={signature}
       />
 
-      <SportShopToggle />
+      <SportShopToggle products={pool} />
 
       <CustomizeJersey products={customizePool} />
 
