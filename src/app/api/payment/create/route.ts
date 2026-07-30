@@ -21,19 +21,29 @@ export async function POST(request: NextRequest) {
     const admin = createAdminClient()
     const { data: storeOrder, error: orderError } = await admin
       .from('orders')
-      .select('id, order_number, total, currency, payment_status, payment_method, cashfree_order_id, shipping_address, guest_email')
+      .select('id, order_number, total, currency, payment_status, payment_method, payment_reference, shipping_address, guest_email')
       .eq('id', orderId)
       .single()
 
-    if (orderError || !storeOrder || storeOrder.payment_method !== 'online') {
+    if (orderError) {
+      console.error('payment/create order lookup failed:', orderError.message)
+      return NextResponse.json(
+        { error: 'Could not load this order. Please try again.' },
+        { status: 500 },
+      )
+    }
+    if (!storeOrder || storeOrder.payment_method !== 'online') {
       return NextResponse.json({ error: 'Store order not found' }, { status: 404 })
     }
     if (storeOrder.payment_status === 'paid') {
       return NextResponse.json({ error: 'This order is already paid' }, { status: 409 })
     }
 
-    if (storeOrder.cashfree_order_id) {
-      const existing = await getCashfreeOrder(storeOrder.cashfree_order_id)
+    const existingCashfreeOrderId = storeOrder.payment_reference?.startsWith('JW_')
+      ? storeOrder.payment_reference
+      : null
+    if (existingCashfreeOrderId) {
+      const existing = await getCashfreeOrder(existingCashfreeOrderId)
       if (existing.order_status === 'ACTIVE' && existing.payment_session_id) {
         return NextResponse.json({
           paymentSessionId: existing.payment_session_id,
@@ -78,8 +88,6 @@ export async function POST(request: NextRequest) {
     const { error: updateError } = await admin
       .from('orders')
       .update({
-        cashfree_order_id: cashfreeOrder.order_id,
-        cashfree_cf_order_id: cashfreeOrder.cf_order_id,
         payment_reference: cashfreeOrder.order_id,
       })
       .eq('id', storeOrder.id)

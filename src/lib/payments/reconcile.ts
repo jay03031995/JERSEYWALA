@@ -9,24 +9,13 @@ export async function markCashfreeOrderPaid(
   const admin = createAdminClient()
   const { data: order, error: orderError } = await admin
     .from('orders')
-    .select('id, payment_status')
-    .eq('cashfree_order_id', cashfreeOrderId)
+    .select('id, payment_status, notes')
+    .eq('payment_reference', cashfreeOrderId)
     .maybeSingle()
 
   if (orderError) throw orderError
   if (!order) return { found: false, paid: false }
-  if (order.payment_status === 'paid') {
-    if (paymentReference) {
-      await admin
-        .from('orders')
-        .update({
-          payment_reference: paymentReference,
-          cashfree_payment_id: paymentReference,
-        })
-        .eq('id', order.id)
-    }
-    return { found: true, paid: true }
-  }
+  if (order.payment_status === 'paid') return { found: true, paid: true }
 
   const { error: reserveError } = await admin.rpc('reserve_order_inventory', {
     target_order_id: order.id,
@@ -38,8 +27,11 @@ export async function markCashfreeOrderPaid(
     .update({
       payment_status: 'paid',
       status: 'confirmed',
-      payment_reference: paymentReference ?? cashfreeOrderId,
-      cashfree_payment_id: paymentReference ?? null,
+      notes: paymentReference
+        ? [order.notes, `Cashfree payment ID: ${paymentReference}`]
+            .filter(Boolean)
+            .join('\n')
+        : order.notes,
     })
     .eq('id', order.id)
     .neq('payment_status', 'paid')
@@ -53,7 +45,7 @@ export async function markCashfreeOrderFailed(cashfreeOrderId: string) {
   const { error } = await admin
     .from('orders')
     .update({ payment_status: 'failed' })
-    .eq('cashfree_order_id', cashfreeOrderId)
+    .eq('payment_reference', cashfreeOrderId)
     .neq('payment_status', 'paid')
 
   if (error) throw error
