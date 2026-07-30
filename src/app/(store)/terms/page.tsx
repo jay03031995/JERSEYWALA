@@ -58,8 +58,7 @@ export default function TermsPage() {
           <p>
             Placing an order constitutes an offer to buy. The contract is formed only when we
             confirm dispatch. Online payments are processed securely by Cashfree and
-            we do not store full card or banking details on our servers. Cash on Delivery may be
-            available for select pin codes at our discretion.
+            we do not store full card or banking details on our servers.
           </p>
         </div>
 

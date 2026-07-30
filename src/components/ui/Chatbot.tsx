@@ -33,7 +33,7 @@ const BOT_RESPONSES: { patterns: RegExp[]; reply: string }[] = [
   },
   {
     patterns: [/pay/i, /payment/i, /upi/i, /card/i, /wallet/i, /cashfree/i],
-    reply: '💳 UPI, card, net banking and wallet payments are securely processed through **Cashfree Checkout**. Cash on Delivery is also available on eligible orders. We never store full card details on our servers.',
+    reply: '💳 UPI, card, net banking and wallet payments are securely processed through **Cashfree Checkout**. We never store full card details on our servers.',
   },
   {
     patterns: [/track/i, /order status/i, /where is my/i, /where.*order/i],
@@ -53,7 +53,7 @@ const BOT_RESPONSES: { patterns: RegExp[]; reply: string }[] = [
   },
   {
     patterns: [/cod/i, /cash/i, /on delivery/i],
-    reply: '💵 Yes! We offer **Cash on Delivery** across India. Just select "Cash on Delivery" at checkout — pay when your jersey arrives!',
+    reply: '💳 Cash on Delivery is not available. You can pay securely through **Cashfree Checkout** using UPI, cards, net banking or wallets.',
   },
   {
     patterns: [/search/i, /find/i, /look.*jersey/i, /jersey.*search/i],

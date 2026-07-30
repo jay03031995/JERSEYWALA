@@ -16,10 +16,9 @@ export async function POST(request: NextRequest) {
     const admin = createAdminClient()
 
     const body = await request.json()
-    const { items, address, paymentMethod = 'online' } = body as {
+    const { items, address } = body as {
       items?: CheckoutItem[]
       address?: Record<string, string>
-      paymentMethod?: 'online' | 'cod'
     }
 
     if (!Array.isArray(items) || items.length === 0 || items.length > 50) {
@@ -32,10 +31,6 @@ export async function POST(request: NextRequest) {
     if (!/^\d{6}$/.test(address.postal_code) || !/^[+\d][\d\s-]{7,14}$/.test(address.phone)) {
       return NextResponse.json({ error: 'Enter a valid Indian phone number and PIN code' }, { status: 400 })
     }
-    if (!['online', 'cod'].includes(paymentMethod)) {
-      return NextResponse.json({ error: 'Invalid payment method' }, { status: 400 })
-    }
-
     const variantIds = [...new Set(items.map((item) => item.variantId))]
     const { data: variants, error: variantError } = await admin
       .from('product_variants')
@@ -78,7 +73,6 @@ export async function POST(request: NextRequest) {
     const subtotal = verifiedItems.reduce((sum, item) => sum + item.total_price, 0)
     const shipping = subtotal >= 999 ? 0 : 99
     const total = subtotal + shipping
-    const isCOD = paymentMethod === 'cod'
     const orderNumber = generateOrderNumber()
 
     const { data: order, error } = await admin
@@ -86,9 +80,9 @@ export async function POST(request: NextRequest) {
       .insert({
         order_number: orderNumber,
         user_id: user?.id ?? null,
-        status: isCOD ? 'confirmed' : 'pending',
+        status: 'pending',
         payment_status: 'pending',
-        payment_method: paymentMethod,
+        payment_method: 'online',
         subtotal,
         shipping_cost: shipping,
         discount_amount: 0,
@@ -107,16 +101,6 @@ export async function POST(request: NextRequest) {
     if (itemsError) {
       await admin.from('orders').delete().eq('id', order.id)
       throw itemsError
-    }
-
-    if (isCOD) {
-      const { error: reserveError } = await admin.rpc('reserve_order_inventory', {
-        target_order_id: order.id,
-      })
-      if (reserveError) {
-        await admin.from('orders').delete().eq('id', order.id)
-        throw new Error('A cart item just sold out. Please review your cart.')
-      }
     }
 
     return NextResponse.json({

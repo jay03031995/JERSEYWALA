@@ -9,26 +9,18 @@ type PaymentState = 'verifying' | 'paid' | 'not-paid' | 'error'
 
 export default function PaymentResult({
   cashfreeOrderId,
-  isCashOnDelivery,
 }: {
   cashfreeOrderId?: string
-  isCashOnDelivery: boolean
 }) {
   const clearCart = useCartStore((state) => state.clearCart)
   const [state, setState] = useState<PaymentState>(
-    isCashOnDelivery ? 'paid' : cashfreeOrderId ? 'verifying' : 'error',
+    cashfreeOrderId ? 'verifying' : 'error',
   )
   const [message, setMessage] = useState(
-    cashfreeOrderId || isCashOnDelivery
-      ? ''
-      : 'The payment reference is missing.',
+    cashfreeOrderId ? '' : 'The payment reference is missing.',
   )
 
   useEffect(() => {
-    if (isCashOnDelivery) {
-      clearCart()
-      return
-    }
     if (!cashfreeOrderId) return
 
     let active = true
@@ -63,7 +55,7 @@ export default function PaymentResult({
     return () => {
       active = false
     }
-  }, [cashfreeOrderId, clearCart, isCashOnDelivery])
+  }, [cashfreeOrderId, clearCart])
 
   const paid = state === 'paid'
   const verifying = state === 'verifying'

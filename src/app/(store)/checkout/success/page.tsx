@@ -3,7 +3,7 @@ import PaymentResult from '@/components/checkout/PaymentResult'
 export default async function CheckoutSuccessPage({
   searchParams,
 }: {
-  searchParams: Promise<{ order_id?: string; method?: string }>
+  searchParams: Promise<{ order_id?: string }>
 }) {
   const params = await searchParams
 
@@ -14,7 +14,6 @@ export default async function CheckoutSuccessPage({
     >
       <PaymentResult
         cashfreeOrderId={params.order_id}
-        isCashOnDelivery={params.method === 'cod'}
       />
     </div>
   )
