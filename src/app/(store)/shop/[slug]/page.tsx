@@ -4,7 +4,7 @@ import { Star, Truck, RotateCcw, ShieldCheck } from 'lucide-react'
 import { getProductBySlug } from '@/lib/queries/products'
 import ProductGallery from '@/components/product/ProductGallery'
 import AddToCartButton from '@/components/product/AddToCartButton'
-import { formatPrice, getDiscountPercent } from '@/lib/utils'
+import { formatPrice, getDiscountPercent, productPath } from '@/lib/utils'
 import Link from 'next/link'
 
 const SITE_URL = 'https://thejerseywala.in'
@@ -39,12 +39,12 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   return {
     title,
     description,
-    alternates: { canonical: `${SITE_URL}/shop/${slug}` },
+    alternates: { canonical: `${SITE_URL}${productPath(product.slug)}` },
     openGraph: {
       type: 'website',
       title,
       description,
-      url: `${SITE_URL}/shop/${slug}`,
+      url: `${SITE_URL}${productPath(product.slug)}`,
       images: image ? [{ url: image, alt: product.name }] : undefined,
     },
     twitter: {
@@ -76,7 +76,7 @@ export default async function ProductDetailPage({ params }: Props) {
 
   const discount = getDiscountPercent(product.base_price, product.compare_price ?? 0)
   const inStock = product.variants?.some((v: { stock_quantity: number }) => v.stock_quantity > 0)
-  const productUrl = `${SITE_URL}/shop/${slug}`
+  const productUrl = `${SITE_URL}${productPath(product.slug)}`
   const teamName = product.team?.name ?? ''
   const brandName = teamName || 'The Jersey Wala'
   const imageUrls = (product.images ?? [])

@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect } from 'react'
 import { MessageCircle, X, Send, ChevronDown } from 'lucide-react'
+import { productPath } from '@/lib/utils'
 
 interface Message {
   id: number
@@ -171,7 +172,7 @@ export default function Chatbot() {
           const { products } = await res.json()
           if (products?.length > 0) {
             const list = products.slice(0, 4).map((p: { name: string; base_price: number; slug: string }) =>
-              `• **${p.name}** — ₹${p.base_price} → [View](/shop/${p.slug})`
+              `• **${p.name}** — ₹${p.base_price} → [View](${productPath(p.slug)})`
             ).join('\n')
             setTimeout(() => addBotMessage(`🔍 Found these jerseys for you:\n\n${list}`), 700)
             return

@@ -1,4 +1,5 @@
 import type { MetadataRoute } from 'next'
+import { productPath } from '@/lib/utils'
 import { createAdminClient } from '@/lib/supabase/admin'
 
 export const dynamic = 'force-dynamic'
@@ -36,7 +37,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     ])
 
     productRoutes = (products ?? []).map((p) => ({
-      url: `${SITE_URL}/shop/${p.slug}`,
+      url: `${SITE_URL}${productPath(p.slug)}`,
       lastModified: p.updated_at ? new Date(p.updated_at) : now,
       changeFrequency: 'weekly',
       priority: 0.7,

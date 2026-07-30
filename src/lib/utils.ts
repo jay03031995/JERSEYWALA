@@ -21,6 +21,24 @@ export function slugify(text: string) {
     .replace(/^-+|-+$/g, '')
 }
 
+export function canonicalProductSlug(value: string) {
+  let decoded = value
+  try {
+    decoded = decodeURIComponent(value)
+  } catch {
+    // Keep malformed legacy values usable instead of failing navigation.
+  }
+  const withoutBrandSuffix = decoded.replace(
+    /(?:\s*-\s*|\s+)the\s+jersey\s+wala\s*$/i,
+    '',
+  )
+  return slugify(withoutBrandSuffix)
+}
+
+export function productPath(slug: string) {
+  return `/shop/${canonicalProductSlug(slug)}`
+}
+
 export function generateOrderNumber() {
   const date = new Date().toISOString().slice(0, 10).replace(/-/g, '')
   const rand = Math.floor(Math.random() * 99999).toString().padStart(5, '0')

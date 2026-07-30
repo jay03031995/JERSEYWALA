@@ -1,5 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
+import { canonicalProductSlug } from '@/lib/utils'
 
 // Full relational select reused across homepage queries
 const PRODUCT_SELECT = `
@@ -71,6 +72,16 @@ export async function getProducts({
 
 export async function getProductBySlug(slug: string) {
   const supabase = await createClient()
+  const decodedSlug = (() => {
+    try {
+      return decodeURIComponent(slug)
+    } catch {
+      return slug
+    }
+  })()
+  const canonicalSlug = canonicalProductSlug(decodedSlug)
+  const candidates = [...new Set([slug, decodedSlug, canonicalSlug])]
+
   const { data, error } = await supabase
     .from('products')
     .select(
@@ -81,12 +92,45 @@ export async function getProductBySlug(slug: string) {
       variants:product_variants(*)
     `
     )
-    .eq('slug', slug)
+    .in('slug', candidates)
     .eq('is_active', true)
-    .single()
+    .limit(1)
+    .maybeSingle()
 
   if (error) throw error
-  return data
+  if (data) return data
+
+  // Imported legacy catalogues sometimes used product titles (including the
+  // old brand suffix) as slugs. Only on an exact-lookup miss, scan the compact
+  // identity fields and compare their canonical forms.
+  const { data: identities, error: identityError } = await supabase
+    .from('products')
+    .select('id, name, slug')
+    .eq('is_active', true)
+    .limit(1000)
+  if (identityError) throw identityError
+
+  const legacyMatch = (identities ?? []).find((product) =>
+    canonicalProductSlug(product.slug) === canonicalSlug ||
+    canonicalProductSlug(product.name) === canonicalSlug
+  )
+  if (!legacyMatch) return null
+
+  const { data: legacyProduct, error: legacyError } = await supabase
+    .from('products')
+    .select(
+      `
+      *,
+      team:teams(*, league:leagues(*, sport:sports(*))),
+      images:product_images(*),
+      variants:product_variants(*)
+    `
+    )
+    .eq('id', legacyMatch.id)
+    .eq('is_active', true)
+    .single()
+  if (legacyError) throw legacyError
+  return legacyProduct
 }
 
 export async function getFeaturedProducts(limit = 8) {

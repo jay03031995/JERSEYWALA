@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import { createAdminClient } from '@/lib/supabase/admin'
+import { productPath } from '@/lib/utils'
 
 const SITE_URL = 'https://thejerseywala.in'
 const SITE_NAME = 'The Jersey Wala'
@@ -36,7 +37,7 @@ function cdata(s: string): string {
 }
 
 function buildItem(p: ProductRow, variant: ProductRow['product_variants'][number] | null): string {
-  const link = `${SITE_URL}/shop/${p.slug}`
+  const link = `${SITE_URL}${productPath(p.slug)}`
   const brand = p.team?.name ?? SITE_NAME
   const images = (p.product_images ?? []).sort((a, b) => a.position - b.position)
   const primary = images[0]?.url

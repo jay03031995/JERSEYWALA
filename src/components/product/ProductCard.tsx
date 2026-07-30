@@ -5,7 +5,7 @@ import Link from 'next/link'
 import { Heart, ShoppingBag } from 'lucide-react'
 import { useCartStore } from '@/store/cartStore'
 import { useWishlistStore } from '@/store/wishlistStore'
-import { formatPrice, getDiscountPercent } from '@/lib/utils'
+import { formatPrice, getDiscountPercent, productPath } from '@/lib/utils'
 import type { Product } from '@/types/database'
 import ResilientProductImage, { firstProductImage } from './ResilientProductImage'
 
@@ -60,7 +60,7 @@ export default function ProductCard({ product }: { product: Product }) {
         >
           <Heart aria-hidden="true" size={17} fill={isWishlisted ? 'currentColor' : 'none'} />
         </button>
-        <Link href={`/shop/${product.slug}`} aria-label={`View ${product.name}`}>
+        <Link href={productPath(product.slug)} aria-label={`View ${product.name}`}>
           <ResilientProductImage product={product} />
         </Link>
       </div>
@@ -71,7 +71,7 @@ export default function ProductCard({ product }: { product: Product }) {
             {[product.team?.name, product.season].filter(Boolean).join(' · ')}
           </p>
         )}
-        <Link href={`/shop/${product.slug}`}>
+        <Link href={productPath(product.slug)}>
           <h3>{product.name}</h3>
         </Link>
         <div className="product-card__price">
