@@ -44,10 +44,28 @@ export function useSportPreference() {
 export function productMatchesSport(product: Product, sport: StoreSport) {
   const slug = product.team?.league?.sport?.slug?.toLowerCase()
   const tags = (product.tags ?? []).map((tag) => tag.toLowerCase())
-  if (sport === 'cricket') {
-    return slug === 'cricket' || slug === 'ipl' || tags.includes('cricket') || tags.includes('ipl')
-  }
-  return slug === 'football' || tags.includes('football')
+  const searchable = [
+    product.name,
+    product.description,
+    product.team?.name,
+    product.team?.league?.name,
+    ...tags,
+  ].filter(Boolean).join(' ').toLowerCase()
+
+  const isCricket =
+    slug === 'cricket' ||
+    slug === 'ipl' ||
+    /\b(cricket|ipl|t20|odi|test match|bcci|csk|rcb|mi jersey|kkr|srh|dc jersey|rr jersey|pbks|gt jersey|lsg)\b/.test(searchable)
+
+  const isFootball =
+    slug === 'football' ||
+    /\b(football|soccer|fifa|premier league|la liga|serie a|bundesliga|champions league|world cup|fc |united|madrid|barcelona|argentina|portugal|france|brazil)\b/.test(searchable)
+
+  if (sport === 'cricket') return isCricket
+  // Most legacy imports are football jerseys without a complete sport
+  // relation. Keep those visible in the default store instead of rendering
+  // an empty homepage, while cricket-classified items remain isolated.
+  return isFootball || !isCricket
 }
 
 export function HeaderSportToggle() {

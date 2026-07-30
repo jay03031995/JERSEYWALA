@@ -92,7 +92,9 @@ export default function ProductCard({ product }: { product: Product }) {
           <img
             src={primaryImage}
             alt={product.name}
-            loading="lazy"
+            loading="eager"
+            decoding="async"
+            referrerPolicy="no-referrer"
             onError={(event) => {
               event.currentTarget.onerror = null
               event.currentTarget.src = '/images/jersey-fallback.jpg'
