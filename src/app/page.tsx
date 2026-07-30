@@ -27,8 +27,17 @@ async function safe<T>(p: Promise<T>, fallback: T): Promise<T> {
   }
 }
 
-const imgOf = (p?: Product): string | undefined =>
-  p?.images?.find((i) => i.is_primary)?.url ?? p?.images?.[0]?.url ?? undefined
+const imgOf = (p?: Product): string | undefined => {
+  const images = p?.images ?? []
+  return images.find((image) =>
+    image.url &&
+    !image.url.startsWith('/images/cricket/') &&
+    !image.url.includes('placehold.co')
+  )?.url ??
+    images.find((image) => image.is_primary)?.url ??
+    images[0]?.url ??
+    undefined
+}
 
 const mergeProducts = (...groups: Product[][]): Product[] => {
   const unique = new Map<string, Product>()

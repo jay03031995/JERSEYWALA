@@ -36,16 +36,23 @@ function productFallbackImage(product: Product): string {
 }
 
 export function productImageUrls(product: Product): string[] {
-  const ordered = [...(product.images ?? [])].sort((a, b) => {
-    if (a.is_primary !== b.is_primary) return a.is_primary ? -1 : 1
-    return (a.position ?? 0) - (b.position ?? 0)
-  })
-  const urls = ordered
-    .map((image) => image.url?.trim())
+  const urls = [...(product.images ?? [])]
+    .filter((image) => {
+      const url = image.url?.trim()
+      return Boolean(url) &&
+        !url?.includes('placehold.co') &&
+        !url?.includes('placeholder')
+    })
+    .sort((a, b) => {
+      const aLocal = a.url.startsWith('/images/cricket/')
+      const bLocal = b.url.startsWith('/images/cricket/')
+      if (aLocal !== bLocal) return aLocal ? 1 : -1
+      if (a.is_primary !== b.is_primary) return a.is_primary ? -1 : 1
+      return (a.position ?? 0) - (b.position ?? 0)
+    })
+    .map((image) => image.url.trim())
     .filter((url): url is string =>
-      Boolean(url) &&
-      !url?.includes('placehold.co') &&
-      !url?.includes('placeholder'),
+      Boolean(url),
     )
 
   return [...new Set(urls)]

@@ -249,20 +249,22 @@ export async function POST() {
       if (existing) teamIdMap[tm.slug] = existing.id
     }
 
-    // 4. Insert products and repair legacy placeholder/missing images
+    // 4. Insert only missing products. Existing catalogue images are managed
+    // in the admin and must never be replaced by seed data.
     let productCount = 0
-    let repairedImageCount = 0
     for (const p of PRODUCTS_DATA) {
       const teamId = teamIdMap[p.teamSlug]
       if (!teamId) continue
 
       const { data: existing } = await admin
         .from('products')
-        .select('id, images:product_images(id, url)')
+        .select('id')
         .eq('slug', p.slug)
         .maybeSingle()
 
-      let productId = existing?.id
+      if (existing) continue
+
+      let productId: string | undefined
       if (!productId) {
         const { data: product } = await admin.from('products').insert({
           team_id: teamId,
@@ -294,19 +296,7 @@ export async function POST() {
         }
       }
 
-      const existingImages = existing?.images ?? []
-      const needsImageRepair =
-        existingImages.length === 0 ||
-        existingImages.every((image) =>
-          !image.url ||
-          image.url.includes('placehold.co') ||
-          image.url.includes('placeholder'),
-        )
-
-      if (!existing || needsImageRepair) {
-        if (existingImages.length > 0) {
-          await admin.from('product_images').delete().eq('product_id', productId)
-        }
+      if (!existing) {
         const uniqueImages = [...new Set(p.images)]
         await admin.from('product_images').insert(
           uniqueImages.map((url, index) => ({
@@ -317,12 +307,10 @@ export async function POST() {
             is_primary: index === 0,
           })),
         )
-        if (existing) repairedImageCount++
       }
     }
 
     results.push(`Inserted ${productCount} new cricket products`)
-    results.push(`Repaired images for ${repairedImageCount} cricket products`)
     return NextResponse.json({ success: true, results })
   } catch (err) {
     return NextResponse.json({ error: String(err) }, { status: 500 })

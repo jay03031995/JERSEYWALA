@@ -1,7 +1,6 @@
 'use client'
 
 import Link from 'next/link'
-import Image from 'next/image'
 import { ArrowRight, Award, KeyRound, Shield, Shirt, Trophy } from 'lucide-react'
 import { productMatchesSport, useSportPreference } from '@/components/sport/SportPreference'
 import SectionHeader from '@/components/home/SectionHeader'
@@ -66,16 +65,6 @@ export default function SportShopToggle({ products }: { products: Product[] }) {
                   width={460}
                   height={460}
                   decorative
-                />
-              )}
-              {index === 0 && !visualProduct && sport === 'cricket' && (
-                <Image
-                  className="sport-category__visual"
-                  src="/images/cricket/india-blue-cricket-jersey.jpg"
-                  alt=""
-                  width={460}
-                  height={460}
-                  sizes="(max-width: 760px) 70vw, 460px"
                 />
               )}
               <span className="sport-category__copy">

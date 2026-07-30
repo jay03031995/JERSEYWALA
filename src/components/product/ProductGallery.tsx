@@ -19,8 +19,10 @@ export default function ProductGallery({ images, productName }: ProductGalleryPr
   const [selected, setSelected] = useState(0)
 
   const sorted = [...images].filter(usableImage).sort((a, b) => {
-    if (a.is_primary) return -1
-    if (b.is_primary) return 1
+    const aLocal = a.url.startsWith('/images/cricket/')
+    const bLocal = b.url.startsWith('/images/cricket/')
+    if (aLocal !== bLocal) return aLocal ? 1 : -1
+    if (a.is_primary !== b.is_primary) return a.is_primary ? -1 : 1
     return a.position - b.position
   })
 
