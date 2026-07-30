@@ -8,25 +8,30 @@ import { useWishlistStore } from '@/store/wishlistStore'
 import { formatPrice, getDiscountPercent } from '@/lib/utils'
 import type { Product } from '@/types/database'
 
+const FALLBACK_IMAGE = '/images/jersey-fallback.jpg'
+
 export default function ProductCard({ product }: { product: Product }) {
   const [selectedSize, setSelectedSize] = useState('')
   const [showSizes, setShowSizes] = useState(false)
-
-  const addItem = useCartStore((s) => s.addItem)
+  const addItem = useCartStore((state) => state.addItem)
   const { toggle, has } = useWishlistStore()
 
-  const primaryImage =
-    product.images?.find((img) => img.is_primary)?.url ??
+  const image =
+    product.images?.find((item) => item.is_primary)?.url ??
     product.images?.[0]?.url ??
-    '/images/jersey-fallback.jpg'
-
-  const inStock = product.variants?.some((v) => v.stock_quantity > 0) ?? false
+    FALLBACK_IMAGE
+  const variants = product.variants ?? []
+  const availableVariants = variants.filter((variant) => variant.stock_quantity > 0)
+  const inStock = availableVariants.length > 0
   const discount = getDiscountPercent(product.base_price, product.compare_price ?? 0)
   const isWishlisted = has(product.id)
 
   const handleAddToCart = () => {
-    if (!selectedSize) { setShowSizes(true); return }
-    const variant = product.variants?.find((v) => v.size === selectedSize)
+    if (!selectedSize) {
+      setShowSizes(true)
+      return
+    }
+    const variant = variants.find((item) => item.size === selectedSize)
     if (!variant) return
     addItem({
       id: `${product.id}-${variant.id}`,
@@ -37,185 +42,87 @@ export default function ProductCard({ product }: { product: Product }) {
       size: selectedSize,
       price: product.base_price + variant.additional_price,
       quantity: 1,
-      imageUrl: primaryImage,
+      imageUrl: image,
       teamName: product.team?.name ?? '',
     })
     setShowSizes(false)
   }
 
   return (
-    <div
-      className="product-card group relative rounded-2xl overflow-hidden transition-all duration-300 hover:translate-y-[-2px]"
-      style={{
-        background: 'var(--bg-card)',
-        border: '1px solid var(--border)',
-      }}
-    >
-      {/* Badges */}
-      <div className="absolute top-3 left-3 z-10 flex flex-col gap-1">
-        {discount > 0 && (
-          <span
-            className="text-white text-[10px] font-semibold px-2 py-0.5 rounded-full"
-            style={{ background: 'var(--red)' }}
-          >
-            -{discount}%
-          </span>
-        )}
-        {product.is_new_arrival && (
-          <span
-            className="text-[10px] font-semibold px-2 py-0.5 rounded-full text-white"
-            style={{ background: 'var(--red)' }}
-          >
-            New
-          </span>
-        )}
-      </div>
-
-      {/* Wishlist */}
-      <button
-        onClick={() => toggle(product.id)}
-        className="product-card__wishlist absolute top-3 right-3 z-10 p-1.5 rounded-full transition-colors"
-      >
-        <Heart
-          size={13}
-          style={{
-            fill: isWishlisted ? 'var(--red)' : 'transparent',
-            color: isWishlisted ? 'var(--red)' : '#333333',
-          }}
-        />
-      </button>
-
-      {/* Image */}
-      <Link href={`/shop/${product.slug}`}>
-        <div className="product-card__image">
+    <article className="product-card">
+      <div className="product-card__media">
+        <div className="product-card__badges" aria-label="Product labels">
+          {discount > 0 && <span className="product-badge">{discount}% off</span>}
+          {product.is_new_arrival && <span className="product-badge">New</span>}
+        </div>
+        <button
+          type="button"
+          onClick={() => toggle(product.id)}
+          className="icon-button product-card__wishlist"
+          aria-label={isWishlisted ? `Remove ${product.name} from wishlist` : `Add ${product.name} to wishlist`}
+          aria-pressed={isWishlisted}
+        >
+          <Heart aria-hidden="true" size={17} fill={isWishlisted ? 'currentColor' : 'none'} />
+        </button>
+        <Link href={`/shop/${product.slug}`} aria-label={`View ${product.name}`}>
+          {/* Plain img is intentional: imported commerce images can originate
+              from domains not known at build time. The fixed media box prevents CLS. */}
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
-            src={primaryImage}
-            alt={product.name}
-            loading="eager"
+            src={image}
+            alt={product.images?.[0]?.alt_text || product.name}
+            width="480"
+            height="480"
+            loading="lazy"
             decoding="async"
             referrerPolicy="no-referrer"
             onError={(event) => {
               event.currentTarget.onerror = null
-              event.currentTarget.src = '/images/jersey-fallback.jpg'
+              event.currentTarget.src = FALLBACK_IMAGE
             }}
           />
-        </div>
-      </Link>
-
-      {/* Info */}
-      <div className="product-card__body">
-        <p
-          className="text-[10px] font-semibold uppercase tracking-[0.06em] mb-1"
-          style={{ color: 'var(--fg-sub)', fontFamily: 'var(--font-inter)' }}
-        >
-          {product.team?.name}{product.season ? ` · ${product.season}` : ''}
-        </p>
-
-        <Link href={`/shop/${product.slug}`}>
-          <h3
-            className="text-[14px] font-medium line-clamp-2 leading-snug transition-colors"
-            style={{ color: 'var(--fg)', fontFamily: 'var(--font-inter)' }}
-          >
-            {product.name}
-          </h3>
         </Link>
+      </div>
 
-        {product.player_name && (
-          <p className="text-[11px] mt-0.5" style={{ color: 'var(--fg-muted)', fontFamily: 'var(--font-inter)' }}>
-            #{product.player_number} {product.player_name}
+      <div className="product-card__content">
+        {(product.team?.name || product.season) && (
+          <p className="product-card__meta">
+            {[product.team?.name, product.season].filter(Boolean).join(' · ')}
           </p>
         )}
-
-        {/* Price */}
-        <div className="flex items-baseline gap-2 mt-2.5">
-          <span className="text-[16px] font-bold" style={{ color: 'var(--fg)', fontFamily: 'var(--font-inter)' }}>
-            {formatPrice(product.base_price)}
-          </span>
-          {product.compare_price && (
-            <span className="text-[12px] line-through font-normal" style={{ color: 'var(--fg-sub)', fontFamily: 'var(--font-inter)' }}>
-              {formatPrice(product.compare_price)}
-            </span>
-          )}
+        <Link href={`/shop/${product.slug}`}>
+          <h3>{product.name}</h3>
+        </Link>
+        <div className="product-card__price">
+          <strong>{formatPrice(product.base_price)}</strong>
+          {product.compare_price && <s>{formatPrice(product.compare_price)}</s>}
         </div>
 
-        {/* Sizes */}
-        {showSizes && (
-          <div className="mt-3">
-            <p className="text-[10px] font-medium mb-1.5 uppercase tracking-[0.06em]" style={{ color: 'var(--red)', fontFamily: 'var(--font-inter)' }}>
-              Pick a size
-            </p>
-            <div className="flex flex-wrap gap-1">
-              {product.variants?.filter((v) => v.stock_quantity > 0).map((v) => (
-                <button
-                  key={v.id}
-                  onClick={() => setSelectedSize(v.size)}
-                  className="px-2.5 py-1 text-[11px] rounded-lg font-medium transition-all"
-                  style={{
-                    border: `1px solid ${selectedSize === v.size ? 'var(--fg)' : 'var(--border)'}`,
-                    background: selectedSize === v.size ? 'var(--fg)' : 'transparent',
-                    color: selectedSize === v.size ? 'var(--bg)' : 'var(--fg-muted)',
-                    fontFamily: 'var(--font-inter)',
-                  }}
-                >
-                  {v.size}
-                </button>
-              ))}
-            </div>
-          </div>
-        )}
+        <div className="size-selector" aria-label={`Choose size for ${product.name}`}>
+          {(showSizes ? availableVariants : variants.slice(0, 5)).map((variant) => (
+            <button
+              key={variant.id}
+              type="button"
+              onClick={() => setSelectedSize(variant.size)}
+              disabled={variant.stock_quantity === 0}
+              className={selectedSize === variant.size ? 'is-selected' : ''}
+              aria-pressed={selectedSize === variant.size}
+            >
+              {variant.size}
+            </button>
+          ))}
+        </div>
 
-        {!showSizes && (
-          <div className="flex flex-wrap gap-1 mt-2.5">
-            {product.variants?.slice(0, 5).map((v) => (
-              <button
-                key={v.id}
-                onClick={() => setSelectedSize(v.size)}
-                disabled={v.stock_quantity === 0}
-                className="text-[10px] px-2 py-0.5 rounded-md transition-all"
-                style={{
-                  border: `1px solid ${
-                    v.stock_quantity === 0
-                      ? 'var(--border-sub)'
-                      : selectedSize === v.size
-                      ? 'var(--fg)'
-                      : 'var(--border)'
-                  }`,
-                  background: selectedSize === v.size ? 'var(--fg)' : 'transparent',
-                  color:
-                    v.stock_quantity === 0
-                      ? 'var(--fg-sub)'
-                      : selectedSize === v.size
-                      ? 'var(--bg)'
-                      : 'var(--fg-muted)',
-                  textDecoration: v.stock_quantity === 0 ? 'line-through' : 'none',
-                  cursor: v.stock_quantity === 0 ? 'not-allowed' : 'pointer',
-                  fontFamily: 'var(--font-inter)',
-                }}
-              >
-                {v.size}
-              </button>
-            ))}
-          </div>
-        )}
-
-        {/* Add to Bag */}
         <button
+          type="button"
+          className="product-card__add"
           onClick={handleAddToCart}
           disabled={!inStock}
-          className="mt-3.5 w-full flex items-center justify-center gap-2 py-2.5 rounded-xl text-[13px] font-semibold transition-all"
-          style={{
-            background: inStock ? 'var(--fg)' : 'var(--bg-raised)',
-            color: inStock ? 'var(--bg)' : 'var(--fg-sub)',
-            opacity: inStock ? 1 : 0.5,
-            cursor: inStock ? 'pointer' : 'not-allowed',
-            fontFamily: 'var(--font-inter)',
-          }}
         >
-          <ShoppingBag size={13} />
-          {inStock ? 'Add to Bag' : 'Out of Stock'}
+          <ShoppingBag aria-hidden="true" size={15} />
+          {inStock ? (showSizes && !selectedSize ? 'Select a size' : 'Add to bag') : 'Out of stock'}
         </button>
       </div>
-    </div>
+    </article>
   )
 }

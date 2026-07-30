@@ -74,7 +74,9 @@ export default async function ProductDetailPage({ params }: Props) {
   const teamName = product.team?.name ?? ''
   const brandName = teamName || 'The Jersey Wala'
   const imageUrls = (product.images ?? []).map((i: { url: string }) => i.url)
-  const priceValidUntil = new Date(Date.now() + 1000 * 60 * 60 * 24 * 90).toISOString().slice(0, 10)
+  const priceValidUntil = new Date(
+    new Date(product.updated_at ?? product.created_at).getTime() + 1000 * 60 * 60 * 24 * 90,
+  ).toISOString().slice(0, 10)
 
   const productJsonLd = {
     '@context': 'https://schema.org',

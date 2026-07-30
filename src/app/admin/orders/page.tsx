@@ -1,6 +1,4 @@
 import { createAdminClient } from '@/lib/supabase/admin'
-import { formatPrice } from '@/lib/utils'
-import type { OrderStatus } from '@/types/database'
 import OrdersTable from '@/components/admin/OrdersTable'
 
 export default async function AdminOrdersPage({

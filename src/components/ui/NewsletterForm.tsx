@@ -1,46 +1,39 @@
 'use client'
 
-import { useState } from 'react'
+import { useId, useState } from 'react'
 import toast from 'react-hot-toast'
-import { ArrowRight } from 'lucide-react'
+import { ArrowRight, LoaderCircle } from 'lucide-react'
 
 export default function NewsletterForm() {
+  const inputId = useId()
   const [email, setEmail] = useState('')
+  const [submitting, setSubmitting] = useState(false)
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
-    if (email) {
-      toast.success('Subscribed.')
-      setEmail('')
-    }
+  const handleSubmit = async (event: React.FormEvent) => {
+    event.preventDefault()
+    if (!email.trim()) return
+    setSubmitting(true)
+    await new Promise((resolve) => window.setTimeout(resolve, 350))
+    toast.success('You are on the list.')
+    setEmail('')
+    setSubmitting(false)
   }
 
   return (
-    <form className="flex flex-col sm:flex-row gap-2 max-w-md mx-auto" onSubmit={handleSubmit}>
+    <form className="newsletter-form" onSubmit={handleSubmit}>
+      <label className="sr-only" htmlFor={inputId}>Email address</label>
       <input
+        id={inputId}
         type="email"
-        placeholder="Your email address"
+        placeholder="Enter your email address"
         value={email}
-        onChange={(e) => setEmail(e.target.value)}
+        onChange={(event) => setEmail(event.target.value)}
         required
-        className="flex-1 px-4 py-3 rounded-xl text-[14px] focus:outline-none transition"
-        style={{
-          background: 'var(--bg-raised)',
-          color: 'var(--fg)',
-          border: '1px solid var(--border)',
-          fontFamily: 'var(--font-inter)',
-        }}
+        autoComplete="email"
       />
-      <button
-        type="submit"
-        className="inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl text-[13px] font-semibold transition-all hover:opacity-90 shrink-0"
-        style={{
-          background: 'var(--fg)',
-          color: 'var(--bg)',
-          fontFamily: 'var(--font-inter)',
-        }}
-      >
-        Subscribe <ArrowRight size={13} />
+      <button type="submit" disabled={submitting}>
+        {submitting ? <LoaderCircle className="animate-spin" aria-hidden="true" size={15} /> : 'Subscribe'}
+        {!submitting && <ArrowRight aria-hidden="true" size={14} />}
       </button>
     </form>
   )

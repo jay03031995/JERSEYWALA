@@ -1,8 +1,7 @@
 'use client'
 
-import Link from 'next/link'
-import { ArrowRight } from 'lucide-react'
 import ProductCard from '@/components/product/ProductCard'
+import SectionHeader from '@/components/home/SectionHeader'
 import { productMatchesSport, useSportPreference } from '@/components/sport/SportPreference'
 import type { Product } from '@/types/database'
 
@@ -18,13 +17,7 @@ function Collection({
   if (products.length === 0) return null
   return (
     <section className="home-pair__collection">
-      <div className="home-pair__heading">
-        <div>
-          <p>{eyebrow}</p>
-          <h2>{title}</h2>
-        </div>
-        <Link href="/shop">View all <ArrowRight size={13} /></Link>
-      </div>
+      <SectionHeader eyebrow={eyebrow} title={title} href="/shop" compact />
       <div className="home-pair__grid">
         {products.slice(0, 3).map((product) => <ProductCard key={product.id} product={product} />)}
       </div>

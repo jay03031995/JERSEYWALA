@@ -1,22 +1,8 @@
 import type { Metadata } from 'next'
-import { Bebas_Neue, Manrope } from 'next/font/google'
 import Script from 'next/script'
 import './globals.css'
 import ConditionalLayout from '@/components/layout/ConditionalLayout'
 import { Toaster } from 'react-hot-toast'
-
-const bebasNeue = Bebas_Neue({
-  subsets: ['latin'],
-  weight: '400',
-  variable: '--font-oswald',
-  display: 'swap',
-})
-
-const manrope = Manrope({
-  subsets: ['latin'],
-  variable: '--font-inter',
-  display: 'swap',
-})
 
 const SITE_URL = 'https://thejerseywala.in'
 const SITE_NAME = 'The Jersey Wala'
@@ -132,14 +118,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
         />
-        {/* Google AdSense — in <head> for site verification by Google crawler */}
-        <script
-          async
-          src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-6641708917809759"
-          crossOrigin="anonymous"
-        />
       </head>
-      <body className={`${bebasNeue.variable} ${manrope.variable} min-h-screen flex flex-col`}>
+      <body className="min-h-screen flex flex-col">
         <ConditionalLayout>{children}</ConditionalLayout>
         {/* Google AdSense — loaded after hydration to avoid script tag conflict */}
         <Script

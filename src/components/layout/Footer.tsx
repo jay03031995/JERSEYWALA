@@ -154,8 +154,8 @@ export default function Footer() {
     : null
 
   return (
-    <footer style={{ background: 'var(--bg-card)', borderTop: '1px solid var(--border)' }}>
-      <div className="max-w-7xl mx-auto px-5 sm:px-8 py-14 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-10">
+    <footer className="site-footer">
+      <div className="site-container site-footer__grid">
 
         {/* Brand */}
         <div className="lg:col-span-2">
@@ -331,8 +331,8 @@ export default function Footer() {
         </div>
       </div>
 
-      <div style={{ borderTop: '1px solid var(--border)' }} className="py-5">
-        <div className="max-w-7xl mx-auto px-5 sm:px-8 flex flex-col sm:flex-row items-center justify-between gap-3">
+      <div className="site-footer__bottom">
+        <div className="site-container site-footer__bottom-inner">
           <div className="text-[12px] text-center sm:text-left" style={{ color: 'var(--fg-sub)', fontFamily: 'var(--font-inter)' }}>
             <p>© 2026 The Jersey Wala. All rights reserved.</p>
             <p className="mt-1">Managed and hosted by Genesis Virtue LLP.</p>

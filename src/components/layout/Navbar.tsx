@@ -1,12 +1,10 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import Link from 'next/link'
-import { usePathname } from 'next/navigation'
 import { ChevronDown, Heart, Menu, Search, ShoppingBag, User, X } from 'lucide-react'
 import { useCartStore } from '@/store/cartStore'
 import { useWishlistStore } from '@/store/wishlistStore'
-import { HeaderSportToggle } from '@/components/sport/SportPreference'
 
 type MegaLink = { label: string; href: string; description?: string }
 type NavItem = {
@@ -110,7 +108,7 @@ const NAV: NavItem[] = [
         ],
       },
       {
-        title: 'More Teams',
+        title: 'North & West',
         links: [
           { label: 'Delhi Capitals', href: '/team/delhi-capitals' },
           { label: 'Punjab Kings', href: '/team/punjab-kings' },
@@ -118,7 +116,7 @@ const NAV: NavItem[] = [
         ],
       },
       {
-        title: 'More Teams',
+        title: 'South & Central',
         links: [
           { label: 'Sunrisers Hyderabad', href: '/team/sunrisers-hyderabad' },
           { label: 'Gujarat Titans', href: '/team/gujarat-titans' },
@@ -151,33 +149,15 @@ const NAV: NavItem[] = [
   { label: 'Sale', href: '/shop?deals=true' },
 ]
 
-const DEFAULT_TICKER = [
-  'Free delivery on orders above ₹999',
-  'Use code JERSEY10 for 10% off',
-  'Fresh football and cricket drops available now',
-]
-
 export default function Navbar() {
-  const pathname = usePathname()
   const [menuOpen, setMenuOpen] = useState(false)
   const [searchOpen, setSearchOpen] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
   const [scrolled, setScrolled] = useState(false)
-  const [tickerMessages, setTickerMessages] = useState(DEFAULT_TICKER)
+  const menuRef = useRef<HTMLDivElement>(null)
   const openCart = useCartStore((state) => state.openCart)
   const cartCount = useCartStore((state) => state.itemCount())
   const wishlistCount = useWishlistStore((state) => state.items.length)
-
-  useEffect(() => {
-    fetch('/api/store-content')
-      .then((response) => (response.ok ? response.json() : null))
-      .then((data) => {
-        if (Array.isArray(data?.ticker_messages) && data.ticker_messages.length > 0) {
-          setTickerMessages(data.ticker_messages)
-        }
-      })
-      .catch(() => {})
-  }, [])
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 6)
@@ -186,7 +166,35 @@ export default function Navbar() {
     return () => window.removeEventListener('scroll', onScroll)
   }, [])
 
-  useEffect(() => setMenuOpen(false), [pathname])
+  useEffect(() => {
+    if (!menuOpen) return
+    const previousOverflow = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
+    const focusable = () => Array.from(
+      menuRef.current?.querySelectorAll<HTMLElement>('a, button, input, [tabindex]:not([tabindex="-1"])') ?? [],
+    )
+    focusable()[0]?.focus()
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') setMenuOpen(false)
+      if (event.key !== 'Tab') return
+      const items = focusable()
+      if (items.length === 0) return
+      const first = items[0]
+      const last = items[items.length - 1]
+      if (event.shiftKey && document.activeElement === first) {
+        event.preventDefault()
+        last.focus()
+      } else if (!event.shiftKey && document.activeElement === last) {
+        event.preventDefault()
+        first.focus()
+      }
+    }
+    document.addEventListener('keydown', onKeyDown)
+    return () => {
+      document.body.style.overflow = previousOverflow
+      document.removeEventListener('keydown', onKeyDown)
+    }
+  }, [menuOpen])
 
   const submitSearch = () => {
     if (searchQuery.trim()) window.location.href = `/shop?q=${encodeURIComponent(searchQuery.trim())}`
@@ -194,18 +202,6 @@ export default function Navbar() {
 
   return (
     <header className={`premium-header ${scrolled ? 'is-scrolled' : ''}`}>
-      <div className="premium-header__ticker">
-        <div className="premium-header__ticker-track">
-          {Array.from({ length: 3 }).flatMap((_, repeatIndex) =>
-            tickerMessages.map((message, messageIndex) => (
-              <span key={`${repeatIndex}-${messageIndex}`}>
-                {message}<i aria-hidden="true">•</i>
-              </span>
-            )),
-          )}
-        </div>
-      </div>
-
       <div className="premium-header__utility">
         <div className="premium-header__utility-inner">
           <button
@@ -286,7 +282,6 @@ export default function Navbar() {
               </div>
             ))}
           </nav>
-          <HeaderSportToggle />
         </div>
       </div>
 
@@ -307,12 +302,20 @@ export default function Navbar() {
       )}
 
       {menuOpen && (
-        <div className="premium-mobile-menu">
-          <HeaderSportToggle />
+        <div
+          ref={menuRef}
+          className="premium-mobile-menu"
+          role="dialog"
+          aria-modal="true"
+          aria-label="Mobile navigation"
+        >
+          <button className="premium-mobile-menu__close" type="button" onClick={() => setMenuOpen(false)} aria-label="Close navigation">
+            <X size={20} />
+          </button>
           {NAV.map((item) => (
             <div key={item.label} className="premium-mobile-menu__group">
               {item.href && (
-                <Link href={item.href} className={item.accent ? 'is-accent' : ''}>
+                <Link href={item.href} onClick={() => setMenuOpen(false)} className={item.accent ? 'is-accent' : ''}>
                   {item.label}
                 </Link>
               )}
@@ -321,7 +324,7 @@ export default function Navbar() {
                   <strong>{item.label}</strong>
                   <div>
                     {item.columns.flatMap((column) => column.links).slice(0, 8).map((link) => (
-                      <Link key={link.href + link.label} href={link.href}>{link.label}</Link>
+                      <Link key={link.href + link.label} href={link.href} onClick={() => setMenuOpen(false)}>{link.label}</Link>
                     ))}
                   </div>
                 </>

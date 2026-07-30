@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server'
+import { NextResponse } from 'next/server'
 import { removeProductsWithBrokenImages } from '@/lib/scripts/remove-broken-products'
 
 /**
@@ -20,7 +20,7 @@ import { removeProductsWithBrokenImages } from '@/lib/scripts/remove-broken-prod
  *   }
  * }
  */
-export async function POST(request: NextRequest) {
+export async function POST() {
   try {
     // TODO: Uncomment for production - Add auth check
     // const session = await auth()

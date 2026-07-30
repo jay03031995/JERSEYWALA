@@ -1,8 +1,7 @@
 'use client'
 
-import Link from 'next/link'
-import { ArrowRight } from 'lucide-react'
 import ProductGrid from '@/components/product/ProductGrid'
+import SectionHeader from '@/components/home/SectionHeader'
 import type { Product } from '@/types/database'
 import { productMatchesSport, useSportPreference } from '@/components/sport/SportPreference'
 
@@ -35,42 +34,19 @@ export default function ProductSection({
   return (
     <section
       id={id}
-      className="home-product-rail"
-      style={{
-        borderTop: '1px solid var(--border)',
-        background: tinted ? 'var(--bg-card)' : 'var(--bg)',
-      }}
+      className={`home-product-rail${tinted ? ' home-product-rail--tinted' : ''}`}
     >
-      <div className="home-product-rail__inner">
-        <div className="home-product-rail__intro">
-          <div>
-            {eyebrow && (
-              <p
-                className="text-[11px] font-semibold tracking-[0.14em] uppercase mb-2"
-                style={{ color: 'var(--red)', fontFamily: 'var(--font-inter)' }}
-              >
-                {eyebrow}
-              </p>
-            )}
-            <h2
-              style={{ color: 'var(--fg)' }}
-            >
-              {title}
-            </h2>
-            <span>
-              {title.toLowerCase().includes('hero')
-                ? 'Rep your legend. Relive their glory.'
-                : 'The latest jerseys and fan gear, just landed.'}
-            </span>
-          </div>
-          {ctaHref && (
-            <Link
-              href={ctaHref}
-            >
-              {ctaLabel} <ArrowRight size={14} />
-            </Link>
-          )}
-        </div>
+      <div className="site-container home-product-rail__inner">
+        <SectionHeader
+          eyebrow={eyebrow ?? 'Curated for fans'}
+          title={title}
+          description={title.toLowerCase().includes('hero')
+            ? 'Rep your legend. Relive their glory.'
+            : 'The latest jerseys and fan gear, just landed.'}
+          href={ctaHref}
+          action={ctaLabel}
+          compact
+        />
         <div className="home-product-rail__products">
           <ProductGrid products={visibleProducts.slice(0, 4)} />
         </div>

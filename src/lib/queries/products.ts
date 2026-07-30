@@ -17,7 +17,6 @@ function hasUsableImage<T extends { images?: ProductImage[] | null }>(p: T): boo
 }
 
 export async function getProducts({
-  sport,
   team,
   featured,
   newArrival,

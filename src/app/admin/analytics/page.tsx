@@ -19,11 +19,9 @@ export default async function AnalyticsPage() {
 
   const [
     { data: orders },
-    { data: products },
     { data: orderItems },
   ] = await Promise.all([
     admin.from('orders').select('id, total, status, payment_status, created_at'),
-    admin.from('products').select('id, name, slug, base_price, is_featured, is_active, team_id'),
     admin.from('order_items').select('product_id, product_name, quantity, total_price, order_id'),
   ])
 

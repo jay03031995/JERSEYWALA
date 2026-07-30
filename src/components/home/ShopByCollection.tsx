@@ -30,15 +30,15 @@ export default function ShopByCollection({ tiles }: { tiles: CollectionTile[] })
 
   return (
     <section className="home-collections">
-      <div className="home-collections__inner">
+      <div className="site-container home-collections__inner">
         <div className="home-collections__intro">
           <p>Shop by collection</p>
           <h1>Explore. Choose. Wear.</h1>
           <span>Premium jerseys, collectibles and more for every kind of fan.</span>
         </div>
-        <div className="home-collections__list">
-          {collections.map(({ label, href, image, Icon }) => (
-            <Link key={label} href={href}>
+        <nav className="home-collections__list" aria-label="Shop by collection">
+          {collections.map(({ label, href, image, Icon }, index) => (
+            <Link key={label} href={href} className={index === 0 ? 'is-active' : ''}>
               <span className="home-collections__circle">
                 {image ? (
                   // eslint-disable-next-line @next/next/no-img-element
@@ -58,7 +58,7 @@ export default function ShopByCollection({ tiles }: { tiles: CollectionTile[] })
           <Link href={`/shop?sport=${sport}`} className="home-collections__next" aria-label="View all collections">
             <ArrowRight size={18} />
           </Link>
-        </div>
+        </nav>
       </div>
     </section>
   )

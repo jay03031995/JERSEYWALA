@@ -42,7 +42,7 @@ export async function proxy(request: NextRequest) {
     return noStore(NextResponse.next({ request }))
   }
 
-  let supabaseResponse = NextResponse.next({ request })
+  const supabaseResponse = NextResponse.next({ request })
 
   const supabase = createServerClient(supabaseUrl, supabaseKey, {
     cookies: {

@@ -17,7 +17,9 @@ export function SportPreferenceProvider({ children }: { children: React.ReactNod
 
   useEffect(() => {
     const saved = window.localStorage.getItem('jerseywala-sport')
-    if (saved === 'football' || saved === 'cricket') setSportState(saved)
+    if (saved === 'football' || saved === 'cricket') {
+      window.queueMicrotask(() => setSportState(saved))
+    }
   }, [])
 
   const value = useMemo(() => ({

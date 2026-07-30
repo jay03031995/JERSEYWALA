@@ -73,7 +73,7 @@ export default async function HomePage() {
   const customizePool = (signature.length > 0 ? signature : featured.length > 0 ? featured : pool).slice(0, 10)
 
   return (
-    <div style={{ background: 'var(--bg)', color: 'var(--fg)' }}>
+    <div className="home-page">
       <ShopByCollection tiles={tiles} />
 
       <ProductSection
@@ -105,17 +105,17 @@ export default async function HomePage() {
 
       {/* Newsletter */}
       <section className="home-newsletter">
-        <div className="home-newsletter__inner">
-          <div>
-            <p>Stay connected</p>
-            <h2>Stay in the Loop</h2>
-          <span>
-            New drops, exclusive deals, and team updates — straight to your inbox.
-          </span>
-          </div>
-          <div className="home-newsletter__form">
-            <NewsletterForm />
-            <small>No spam. Unsubscribe anytime.</small>
+        <div className="site-container">
+          <div className="home-newsletter__inner">
+            <div>
+              <p className="eyebrow">Stay connected</p>
+              <h2>Stay in the Loop</h2>
+              <span>New drops, exclusive deals and match-day stories—straight to your inbox.</span>
+            </div>
+            <div className="home-newsletter__form">
+              <NewsletterForm />
+              <small>No spam. Unsubscribe anytime.</small>
+            </div>
           </div>
         </div>
       </section>

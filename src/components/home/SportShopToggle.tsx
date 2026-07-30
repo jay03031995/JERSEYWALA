@@ -3,6 +3,7 @@
 import Link from 'next/link'
 import { ArrowRight, Award, KeyRound, Shield, Shirt, Trophy } from 'lucide-react'
 import { useSportPreference } from '@/components/sport/SportPreference'
+import SectionHeader from '@/components/home/SectionHeader'
 
 const SHOP = {
   football: {
@@ -39,22 +40,30 @@ export default function SportShopToggle() {
 
   return (
     <section className="sport-shop" aria-labelledby="sport-shop-heading">
-      <div className="sport-shop__inner">
-        <div className="sport-shop__heading">
-          <div>
-            <p className="section-kicker">{content.eyebrow}</p>
-            <h2 id="sport-shop-heading">{content.title}</h2>
-            <p>{content.description}</p>
-          </div>
-          <Link href={content.href}>
-            Shop all {content.label} <ArrowRight size={16} />
-          </Link>
-        </div>
+      <div className="site-container sport-shop__inner">
+        <SectionHeader
+          eyebrow={content.eyebrow}
+          title={content.title}
+          description={content.description}
+          href={content.href}
+          action={`Shop all ${content.label}`}
+          id="sport-shop-heading"
+        />
 
         <div className="sport-categories">
           {content.categories.map(({ label, description, query, icon: Icon }, index) => (
             <Link key={label} href={query} className={index === 0 ? 'is-featured' : ''}>
               <span className="sport-category__icon"><Icon size={index === 0 ? 32 : 25} strokeWidth={1.65} /></span>
+              {index === 0 && (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  className="sport-category__visual"
+                  src="/images/jersey-fallback.jpg"
+                  width="460"
+                  height="460"
+                  alt=""
+                />
+              )}
               <span className="sport-category__copy">
                 <strong>{label}</strong>
                 <small>{description}</small>

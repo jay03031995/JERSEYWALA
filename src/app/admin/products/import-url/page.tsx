@@ -21,7 +21,7 @@ export default async function ImportUrlPage() {
           style={{ color: 'var(--fg-muted)', fontFamily: 'var(--font-inter)' }}
         >
           Paste any product URL — Shopify stores, sites with Schema.org or Open Graph product
-          tags — and we'll fetch the title, images, price, sizes, and description.
+          tags — and we&apos;ll fetch the title, images, price, sizes, and description.
         </p>
       </div>
       <ImportFromUrl teams={teams ?? []} />
