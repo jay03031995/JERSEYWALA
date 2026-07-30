@@ -1,7 +1,6 @@
 'use client'
 
 import { useState } from 'react'
-import Image from 'next/image'
 import Link from 'next/link'
 import { Heart, ShoppingBag } from 'lucide-react'
 import { useCartStore } from '@/store/cartStore'
@@ -46,19 +45,10 @@ export default function ProductCard({ product }: { product: Product }) {
 
   return (
     <div
-      className="group relative rounded-2xl overflow-hidden transition-all duration-300 hover:translate-y-[-2px]"
+      className="product-card group relative rounded-2xl overflow-hidden transition-all duration-300 hover:translate-y-[-2px]"
       style={{
         background: 'var(--bg-card)',
         border: '1px solid var(--border)',
-        boxShadow: 'none',
-      }}
-      onMouseEnter={(e) => {
-        (e.currentTarget as HTMLDivElement).style.boxShadow = '0 12px 32px rgba(20,15,10,0.12)'
-        ;(e.currentTarget as HTMLDivElement).style.borderColor = 'var(--border-sub)'
-      }}
-      onMouseLeave={(e) => {
-        (e.currentTarget as HTMLDivElement).style.boxShadow = 'none'
-        ;(e.currentTarget as HTMLDivElement).style.borderColor = 'var(--border)'
       }}
     >
       {/* Badges */}
@@ -84,33 +74,31 @@ export default function ProductCard({ product }: { product: Product }) {
       {/* Wishlist */}
       <button
         onClick={() => toggle(product.id)}
-        className="absolute top-3 right-3 z-10 p-1.5 rounded-full transition-colors"
-        style={{ background: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(8px)' }}
+        className="product-card__wishlist absolute top-3 right-3 z-10 p-1.5 rounded-full transition-colors"
       >
         <Heart
           size={13}
           style={{
             fill: isWishlisted ? 'var(--red)' : 'transparent',
-            color: isWishlisted ? 'var(--red)' : 'rgba(255,255,255,0.6)',
+            color: isWishlisted ? 'var(--red)' : '#333333',
           }}
         />
       </button>
 
       {/* Image */}
       <Link href={`/shop/${product.slug}`}>
-        <div className="aspect-square relative overflow-hidden" style={{ background: 'var(--bg-raised)' }}>
-          <Image
+        <div className="product-card__image">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
             src={primaryImage}
             alt={product.name}
-            fill
-            className="object-cover transition-transform duration-500 group-hover:scale-[1.04]"
-            sizes="(max-width: 768px) 50vw, 25vw"
+            loading="lazy"
           />
         </div>
       </Link>
 
       {/* Info */}
-      <div className="p-4">
+      <div className="product-card__body">
         <p
           className="text-[10px] font-semibold uppercase tracking-[0.06em] mb-1"
           style={{ color: 'var(--fg-sub)', fontFamily: 'var(--font-inter)' }}
