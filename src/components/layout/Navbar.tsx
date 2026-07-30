@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { ChevronDown, Heart, Menu, Search, ShoppingBag, User, X } from 'lucide-react'
 import { useCartStore } from '@/store/cartStore'
 import { useWishlistStore } from '@/store/wishlistStore'
+import { HeaderSportToggle } from '@/components/sport/SportPreference'
 
 type MegaLink = { label: string; href: string; description?: string }
 type NavItem = {
@@ -282,6 +283,7 @@ export default function Navbar() {
               </div>
             ))}
           </nav>
+          <HeaderSportToggle />
         </div>
       </div>
 
@@ -312,6 +314,7 @@ export default function Navbar() {
           <button className="premium-mobile-menu__close" type="button" onClick={() => setMenuOpen(false)} aria-label="Close navigation">
             <X size={20} />
           </button>
+          <HeaderSportToggle />
           {NAV.map((item) => (
             <div key={item.label} className="premium-mobile-menu__group">
               {item.href && (

@@ -255,8 +255,8 @@ h1, h2, h3, h4, h5 { font-family: var(--font-sans); }
 }
 
 .premium-header__nav-row { position: relative; }
-.premium-header__nav-inner { min-height: 52px; justify-content: center; }
-.premium-nav { align-self: stretch; display: flex; align-items: stretch; }
+.premium-header__nav-inner { min-height: 52px; justify-content: space-between; gap: 20px; }
+.premium-nav { margin-inline: auto; align-self: stretch; display: flex; align-items: stretch; }
 .premium-nav__item { display: flex; align-items: stretch; }
 .premium-nav__item > a,
 .premium-nav__item > button {
@@ -359,6 +359,38 @@ h1, h2, h3, h4, h5 { font-family: var(--font-sans); }
 .premium-search button { min-height: 36px; padding-inline: 18px; color: #fff; background: #111; border: 0; border-radius: 999px; font-size: 11px; font-weight: 750; }
 .premium-header__mobile-menu,
 .premium-mobile-menu { display: none; }
+
+.header-sport-toggle {
+  width: 176px;
+  padding: 3px;
+  flex: 0 0 auto;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  background: var(--surface-soft);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+}
+
+.header-sport-toggle button {
+  min-height: 32px;
+  padding-inline: 10px;
+  color: var(--text-secondary);
+  background: transparent;
+  border: 0;
+  border-radius: 999px;
+  font-size: 9px;
+  font-weight: 850;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: color .2s ease, background .2s ease, box-shadow .2s ease;
+}
+
+.header-sport-toggle button.is-active {
+  color: #fff;
+  background: var(--accent);
+  box-shadow: 0 4px 12px rgba(228, 30, 38, .2);
+}
 
 /* Collection rail */
 .home-collections { background: var(--surface); border-bottom: 1px solid var(--border); }
@@ -816,6 +848,7 @@ h1, h2, h3, h4, h5 { font-family: var(--font-sans); }
     background: #fff;
   }
   .premium-mobile-menu__close { position: absolute; top: 16px; right: 18px; background: var(--surface-soft); }
+  .premium-mobile-menu > .header-sport-toggle { width: 100%; margin-bottom: 20px; }
   .premium-mobile-menu__group { padding: 16px 2px; border-top: 1px solid var(--border); }
   .premium-mobile-menu__group > a,
   .premium-mobile-menu__group > strong { display: block; font-size: 16px; font-weight: 800; }
