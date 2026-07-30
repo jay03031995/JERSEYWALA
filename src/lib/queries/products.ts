@@ -9,14 +9,8 @@ const PRODUCT_SELECT = `
   variants:product_variants(*)
 `
 
-type ProductImage = { url?: string | null }
-
-function hasUsableImage<T extends { images?: ProductImage[] | null }>(p: T): boolean {
-  const imgs = p.images ?? []
-  return imgs.some((i) => typeof i?.url === 'string' && i.url.trim().length > 0)
-}
-
 export async function getProducts({
+  sport,
   team,
   featured,
   newArrival,
@@ -33,7 +27,7 @@ export async function getProducts({
   const supabase = await createClient()
 
   // Fetch a bit more than `limit` so the post-filter still returns enough rows
-  const fetchSize = limit * 2
+  const fetchSize = limit * (sport ? 10 : 2)
 
   let query = supabase
     .from('products')
@@ -58,7 +52,21 @@ export async function getProducts({
 
   const { data, error } = await query
   if (error) throw error
-  return (data ?? []).filter(hasUsableImage).slice(0, limit)
+  const products = data ?? []
+  if (!sport) return products.slice(0, limit)
+
+  const normalizedSport = sport.toLowerCase()
+  return products
+    .filter((product) => {
+      const sportSlug = product.team?.league?.sport?.slug?.toLowerCase()
+      const tags = (product.tags ?? []).map((tag: string) => tag.toLowerCase())
+      if (normalizedSport === 'cricket') {
+        return sportSlug === 'cricket' || sportSlug === 'ipl' ||
+          tags.includes('cricket') || tags.includes('ipl')
+      }
+      return sportSlug === normalizedSport || tags.includes(normalizedSport)
+    })
+    .slice(0, limit)
 }
 
 export async function getProductBySlug(slug: string) {
@@ -103,7 +111,7 @@ export async function searchProducts(query: string, limit = 20) {
     .limit(limit * 2)
 
   if (error) throw error
-  return (data ?? []).filter(hasUsableImage).slice(0, limit)
+  return (data ?? []).slice(0, limit)
 }
 
 // Products currently on sale (compare_price higher than base_price).
@@ -120,7 +128,6 @@ export async function getSaleProducts(limit = 8) {
     .limit(limit * 4)
   if (error) throw error
   return (data ?? [])
-    .filter(hasUsableImage)
     .filter((p) => typeof p.compare_price === 'number' && p.compare_price > p.base_price)
     .slice(0, limit)
 }
@@ -137,7 +144,7 @@ export async function getSignatureProducts(limit = 8) {
     .order('created_at', { ascending: false })
     .limit(limit * 3)
   if (error) throw error
-  return (data ?? []).filter(hasUsableImage).slice(0, limit)
+  return (data ?? []).slice(0, limit)
 }
 
 // Best sellers from real order history. Aggregates order_items by product,
@@ -171,7 +178,6 @@ export async function getBestSellers(limit = 8) {
       .eq('is_active', true)
 
     const ranked = (data ?? [])
-      .filter(hasUsableImage)
       .sort((a, b) => (unitsByProduct.get(b.id) ?? 0) - (unitsByProduct.get(a.id) ?? 0))
       .slice(0, limit)
 

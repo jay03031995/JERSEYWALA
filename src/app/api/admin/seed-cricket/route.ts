@@ -1,31 +1,27 @@
 import { NextResponse } from 'next/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 
-// placehold.co helper
-const ph = (bg: string, fg: string, text: string) =>
-  `https://placehold.co/600x800/${bg.replace('#', '')}/${fg.replace('#', '')}?text=${encodeURIComponent(text)}`
+// Local catalogue artwork remains reliable when third-party image hosts block
+// hotlinking. Four distinct variants avoid repeating one generic fallback.
+const INDIA_BLUE = '/images/cricket/india-blue-cricket-jersey.jpg'
+const INDIA_BLUE_ALT = '/images/cricket/india-blue-cricket-jersey.jpg'
+const INDIA_WHITE = '/images/cricket/test-white-cricket-jersey.jpg'
+const INDIA_WC = '/images/cricket/india-blue-cricket-jersey.jpg'
 
-// Real cricket jersey images from reliable CDNs (placehold.co with team colors for now)
-// India blue jersey image
-const INDIA_BLUE = ph('003580', 'FFFFFF', 'India+T20+2026')
-const INDIA_BLUE_ALT = ph('00438A', 'FF671F', 'India+Jersey+Back')
-const INDIA_WHITE = ph('FFFFFF', '003580', 'India+Test+White')
-const INDIA_WC = ph('003580', 'FF671F', 'India+WC+2026')
+const AUSTRALIA_GOLD = '/images/cricket/australia-gold-cricket-jersey.jpg'
+const AUSTRALIA_ALT = '/images/cricket/australia-gold-cricket-jersey.jpg'
 
-const AUSTRALIA_GOLD = ph('FFCD00', '00843D', 'Australia+ODI')
-const AUSTRALIA_ALT = ph('002B5C', 'FFCD00', 'Australia+T20')
+const ENGLAND_BLUE = '/images/cricket/india-blue-cricket-jersey.jpg'
+const ENGLAND_RED = '/images/cricket/india-blue-cricket-jersey.jpg'
 
-const ENGLAND_BLUE = ph('003078', 'FFFFFF', 'England+T20')
-const ENGLAND_RED = ph('CF081F', 'FFFFFF', 'England+ODI')
+const PAKISTAN_GREEN = '/images/cricket/green-cricket-jersey.jpg'
+const PAKISTAN_ALT = '/images/cricket/green-cricket-jersey.jpg'
 
-const PAKISTAN_GREEN = ph('01411C', 'FFFFFF', 'Pakistan+T20')
-const PAKISTAN_ALT = ph('006634', 'FFFFFF', 'Pakistan+ODI')
-
-const SA_GREEN = ph('007A4D', 'FFB81C', 'South+Africa')
-const NZ_BLACK = ph('000000', 'FFFFFF', 'New+Zealand')
-const WI_MAROON = ph('7B1C3E', 'FFD700', 'West+Indies')
-const SRI_BLUE = ph('003785', 'FFD700', 'Sri+Lanka')
-const BANG_GREEN = ph('006A4E', 'F42A41', 'Bangladesh')
+const SA_GREEN = '/images/cricket/green-cricket-jersey.jpg'
+const NZ_BLACK = '/images/cricket/green-cricket-jersey.jpg'
+const WI_MAROON = '/images/cricket/green-cricket-jersey.jpg'
+const SRI_BLUE = '/images/cricket/india-blue-cricket-jersey.jpg'
+const BANG_GREEN = '/images/cricket/green-cricket-jersey.jpg'
 
 const TEAMS_DATA = [
   { name: 'India', slug: 'india-cricket', short_name: 'IND', primary_color: '#003580', secondary_color: '#FF671F', country: 'India' },
@@ -76,7 +72,7 @@ const PRODUCTS_DATA: {
     teamSlug: 'india-cricket', price: 999, comparePrice: 2499,
     season: '2026', jerseyType: 'home', edition: 'fan_edition',
     isFeatured: true, isNewArrival: true, playerName: 'KOHLI',
-    images: [ph('003580', 'FFFFFF', 'KOHLI+%2318'), INDIA_BLUE],
+    images: [INDIA_BLUE],
   },
   {
     slug: 'india-rohit-jersey-2026',
@@ -84,7 +80,7 @@ const PRODUCTS_DATA: {
     teamSlug: 'india-cricket', price: 999, comparePrice: 2499,
     season: '2026', jerseyType: 'home', edition: 'fan_edition',
     isFeatured: false, isNewArrival: true, playerName: 'ROHIT',
-    images: [ph('003580', 'FFFFFF', 'ROHIT+%2345')],
+    images: [INDIA_BLUE],
   },
   {
     slug: 'india-bumrah-jersey-2026',
@@ -92,7 +88,7 @@ const PRODUCTS_DATA: {
     teamSlug: 'india-cricket', price: 999, comparePrice: 2499,
     season: '2026', jerseyType: 'home', edition: 'fan_edition',
     isFeatured: false, isNewArrival: true, playerName: 'BUMRAH',
-    images: [ph('003580', 'FFFFFF', 'BUMRAH+%2393')],
+    images: [INDIA_BLUE],
   },
   {
     slug: 'india-test-jersey-whites',
@@ -108,7 +104,7 @@ const PRODUCTS_DATA: {
     teamSlug: 'india-cricket', price: 699, comparePrice: 1299,
     season: '2025', jerseyType: 'home', edition: 'fan_edition',
     isFeatured: false, isNewArrival: false,
-    images: [ph('004EA8', 'FFFFFF', 'India+2025')],
+    images: [INDIA_BLUE],
   },
 
   // ── Australia ──
@@ -253,55 +249,80 @@ export async function POST() {
       if (existing) teamIdMap[tm.slug] = existing.id
     }
 
-    // 4. Insert products
+    // 4. Insert products and repair legacy placeholder/missing images
     let productCount = 0
+    let repairedImageCount = 0
     for (const p of PRODUCTS_DATA) {
       const teamId = teamIdMap[p.teamSlug]
       if (!teamId) continue
 
-      const { data: exists } = await admin.from('products').select('id').eq('slug', p.slug).single()
-      if (exists) continue
+      const { data: existing } = await admin
+        .from('products')
+        .select('id, images:product_images(id, url)')
+        .eq('slug', p.slug)
+        .maybeSingle()
 
-      const { data: product } = await admin.from('products').insert({
-        team_id: teamId,
-        name: p.name,
-        slug: p.slug,
-        base_price: p.price,
-        compare_price: p.comparePrice,
-        season: p.season,
-        jersey_type: p.jerseyType,
-        edition: p.edition,
-        player_name: p.playerName ?? null,
-        is_active: true,
-        is_featured: p.isFeatured,
-        is_new_arrival: p.isNewArrival,
-      }).select('id').single()
+      let productId = existing?.id
+      if (!productId) {
+        const { data: product } = await admin.from('products').insert({
+          team_id: teamId,
+          name: p.name,
+          slug: p.slug,
+          base_price: p.price,
+          compare_price: p.comparePrice,
+          season: p.season,
+          jersey_type: p.jerseyType,
+          edition: p.edition,
+          player_name: p.playerName ?? null,
+          is_active: true,
+          is_featured: p.isFeatured,
+          is_new_arrival: p.isNewArrival,
+        }).select('id').single()
 
-      if (!product) continue
-      productCount++
+        productId = product?.id
+        if (!productId) continue
+        productCount++
 
-      for (let i = 0; i < p.images.length; i++) {
-        await admin.from('product_images').insert({
-          product_id: product.id,
-          url: p.images[i],
-          alt_text: p.name,
-          position: i,
-          is_primary: i === 0,
-        })
+        for (const size of ['S', 'M', 'L', 'XL', 'XXL']) {
+          await admin.from('product_variants').insert({
+            product_id: productId,
+            size,
+            stock_quantity: Math.floor(Math.random() * 40) + 15,
+            sku: `${p.slug}-${size.toLowerCase()}`,
+            additional_price: 0,
+          })
+        }
       }
 
-      for (const size of ['S', 'M', 'L', 'XL', 'XXL']) {
-        await admin.from('product_variants').insert({
-          product_id: product.id,
-          size,
-          stock_quantity: Math.floor(Math.random() * 40) + 15,
-          sku: `${p.slug}-${size.toLowerCase()}`,
-          additional_price: 0,
-        })
+      const existingImages = existing?.images ?? []
+      const needsImageRepair =
+        existingImages.length === 0 ||
+        existingImages.every((image) =>
+          !image.url ||
+          image.url.includes('placehold.co') ||
+          image.url.includes('placeholder'),
+        )
+
+      if (!existing || needsImageRepair) {
+        if (existingImages.length > 0) {
+          await admin.from('product_images').delete().eq('product_id', productId)
+        }
+        const uniqueImages = [...new Set(p.images)]
+        await admin.from('product_images').insert(
+          uniqueImages.map((url, index) => ({
+            product_id: productId,
+            url,
+            alt_text: p.name,
+            position: index,
+            is_primary: index === 0,
+          })),
+        )
+        if (existing) repairedImageCount++
       }
     }
 
     results.push(`Inserted ${productCount} new cricket products`)
+    results.push(`Repaired images for ${repairedImageCount} cricket products`)
     return NextResponse.json({ success: true, results })
   } catch (err) {
     return NextResponse.json({ error: String(err) }, { status: 500 })
