@@ -23,6 +23,14 @@ const EMPTY: AddressForm = {
   city: '', state: '', postal_code: '',
 }
 
+const checkoutItemImage = (imageUrl: string | undefined, name: string) => {
+  const url = imageUrl?.trim()
+  if (url && !url.includes('placehold.co') && !url.includes('placeholder')) return url
+  return /\b(cricket|ipl|csk|rcb|kkr|india)\b/i.test(name)
+    ? '/images/cricket/india-blue-cricket-jersey.jpg'
+    : '/images/default-sports-product.jpg'
+}
+
 function Field({
   label, type = 'text', placeholder, value, onChange, required = true, half = false,
 }: {
@@ -380,7 +388,7 @@ export default function CheckoutPage() {
                     style={{ background: 'var(--bg-raised)', border: '1px solid var(--border)' }}
                   >
                     <Image
-                      src={item.imageUrl || '/placeholder-jersey.png'}
+                      src={checkoutItemImage(item.imageUrl, item.name)}
                       alt={item.name}
                       fill className="object-cover" sizes="48px"
                     />

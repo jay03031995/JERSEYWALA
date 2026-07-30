@@ -1,9 +1,14 @@
 'use client'
 
 import { useState } from 'react'
-import Image from 'next/image'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 import type { ProductImage } from '@/types/database'
+
+const DEFAULT_PRODUCT_IMAGE = '/images/default-sports-product.jpg'
+const usableImage = (image: ProductImage) =>
+  Boolean(image.url?.trim()) &&
+  !image.url.includes('placehold.co') &&
+  !image.url.includes('placeholder')
 
 interface ProductGalleryProps {
   images: ProductImage[]
@@ -13,7 +18,7 @@ interface ProductGalleryProps {
 export default function ProductGallery({ images, productName }: ProductGalleryProps) {
   const [selected, setSelected] = useState(0)
 
-  const sorted = [...images].sort((a, b) => {
+  const sorted = [...images].filter(usableImage).sort((a, b) => {
     if (a.is_primary) return -1
     if (b.is_primary) return 1
     return a.position - b.position
@@ -28,7 +33,12 @@ export default function ProductGallery({ images, productName }: ProductGalleryPr
         className="aspect-square rounded-2xl flex items-center justify-center"
         style={{ background: 'var(--bg-raised)', border: '1px solid var(--border)' }}
       >
-        <span style={{ fontSize: '64px' }}>👕</span>
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src={DEFAULT_PRODUCT_IMAGE}
+          alt={productName}
+          className="w-full h-full object-cover"
+        />
       </div>
     )
   }
@@ -40,13 +50,15 @@ export default function ProductGallery({ images, productName }: ProductGalleryPr
         className="relative aspect-square rounded-2xl overflow-hidden group"
         style={{ background: 'var(--bg-raised)' }}
       >
-        <Image
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
           src={sorted[selected].url}
           alt={sorted[selected].alt_text ?? productName}
-          fill
-          className="object-cover"
-          priority
-          sizes="(max-width: 768px) 100vw, 50vw"
+          className="absolute inset-0 w-full h-full object-cover"
+          loading="eager"
+          onError={(event) => {
+            event.currentTarget.src = DEFAULT_PRODUCT_IMAGE
+          }}
         />
         {sorted.length > 1 && (
           <>
@@ -81,12 +93,15 @@ export default function ProductGallery({ images, productName }: ProductGalleryPr
                 opacity: selected === i ? 1 : 0.6,
               }}
             >
-              <Image
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
                 src={img.url}
                 alt={img.alt_text ?? `View ${i + 1}`}
-                fill
-                className="object-cover"
-                sizes="64px"
+                className="absolute inset-0 w-full h-full object-cover"
+                loading="lazy"
+                onError={(event) => {
+                  event.currentTarget.src = DEFAULT_PRODUCT_IMAGE
+                }}
               />
             </button>
           ))}

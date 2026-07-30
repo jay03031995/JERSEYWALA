@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import type { Product } from '@/types/database'
 
-export const PRODUCT_FALLBACK_IMAGE = '/images/jersey-fallback.jpg'
+export const PRODUCT_FALLBACK_IMAGE = '/images/default-sports-product.jpg'
 export const CRICKET_FALLBACK_IMAGES = {
   blue: '/images/cricket/india-blue-cricket-jersey.jpg',
   gold: '/images/cricket/australia-gold-cricket-jersey.jpg',
@@ -42,7 +42,11 @@ export function productImageUrls(product: Product): string[] {
   })
   const urls = ordered
     .map((image) => image.url?.trim())
-    .filter((url): url is string => Boolean(url))
+    .filter((url): url is string =>
+      Boolean(url) &&
+      !url?.includes('placehold.co') &&
+      !url?.includes('placeholder'),
+    )
 
   return [...new Set(urls)]
 }

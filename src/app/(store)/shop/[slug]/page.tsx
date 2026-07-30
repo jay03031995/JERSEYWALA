@@ -8,6 +8,10 @@ import { formatPrice, getDiscountPercent } from '@/lib/utils'
 import Link from 'next/link'
 
 const SITE_URL = 'https://thejerseywala.in'
+const validProductImage = (url?: string) =>
+  Boolean(url?.trim()) &&
+  !url?.includes('placehold.co') &&
+  !url?.includes('placeholder')
 
 interface Props {
   params: Promise<{ slug: string }>
@@ -28,7 +32,9 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const description =
     product.description?.slice(0, 160) ||
     `Buy ${product.name}${teamName ? ` for ${teamName}` : ''} online. Authentic jersey at ₹${product.base_price}. Free delivery across India.`
-  const image = (product.images ?? [])[0]?.url
+  const image = (product.images ?? []).find((item: { url: string }) =>
+    validProductImage(item.url)
+  )?.url ?? `${SITE_URL}/images/default-sports-product.jpg`
 
   return {
     title,
@@ -73,7 +79,12 @@ export default async function ProductDetailPage({ params }: Props) {
   const productUrl = `${SITE_URL}/shop/${slug}`
   const teamName = product.team?.name ?? ''
   const brandName = teamName || 'The Jersey Wala'
-  const imageUrls = (product.images ?? []).map((i: { url: string }) => i.url)
+  const imageUrls = (product.images ?? [])
+    .map((i: { url: string }) => i.url)
+    .filter(validProductImage)
+  if (imageUrls.length === 0) {
+    imageUrls.push(`${SITE_URL}/images/default-sports-product.jpg`)
+  }
   const priceValidUntil = new Date(
     new Date(product.updated_at ?? product.created_at).getTime() + 1000 * 60 * 60 * 24 * 90,
   ).toISOString().slice(0, 10)

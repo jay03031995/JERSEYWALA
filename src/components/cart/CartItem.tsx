@@ -6,6 +6,15 @@ import { useCartStore } from '@/store/cartStore'
 import { formatPrice } from '@/lib/utils'
 import type { CartItem as CartItemType } from '@/store/cartStore'
 
+const cartImage = (item: CartItemType) => {
+  const url = item.imageUrl?.trim()
+  if (url && !url.includes('placehold.co') && !url.includes('placeholder')) return url
+  const cricket = `${item.name} ${item.teamName}`.toLowerCase()
+  return /\b(cricket|ipl|csk|rcb|kkr|srh|pbks|lsg|india)\b/.test(cricket)
+    ? '/images/cricket/india-blue-cricket-jersey.jpg'
+    : '/images/default-sports-product.jpg'
+}
+
 export default function CartItem({ item }: { item: CartItemType }) {
   const { updateQuantity, removeItem } = useCartStore()
 
@@ -19,7 +28,7 @@ export default function CartItem({ item }: { item: CartItemType }) {
         style={{ background: 'var(--bg-raised)' }}
       >
         <Image
-          src={item.imageUrl || '/placeholder-jersey.png'}
+          src={cartImage(item)}
           alt={item.name}
           fill
           className="object-cover"

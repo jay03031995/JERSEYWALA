@@ -7,6 +7,7 @@ import { useWishlistStore } from '@/store/wishlistStore'
 import SizeSelector from './SizeSelector'
 import toast from 'react-hot-toast'
 import type { Product } from '@/types/database'
+import { firstProductImage } from './ResilientProductImage'
 
 export default function AddToCartButton({ product }: { product: Product }) {
   const [selectedSize, setSelectedSize] = useState('')
@@ -14,8 +15,7 @@ export default function AddToCartButton({ product }: { product: Product }) {
   const { toggle, has } = useWishlistStore()
   const isWishlisted = has(product.id)
 
-  const primaryImage =
-    product.images?.find((i) => i.is_primary)?.url ?? product.images?.[0]?.url ?? ''
+  const primaryImage = firstProductImage(product)
 
   const handleAdd = () => {
     if (!selectedSize) {

@@ -16,9 +16,21 @@ const MI = {
   wplJersey: 'https://cdn.shopify.com/s/files/1/0627/2938/8118/files/TP0292ID-NWLB-A.jpg?v=1766993704',
 }
 
-// placehold.co images for other teams (team color backgrounds)
-const ph = (bg: string, fg: string, text: string) =>
-  `https://placehold.co/600x800/${bg.replace('#', '')}/${fg.replace('#', '')}?text=${encodeURIComponent(text)}`
+// Map teams without a licensed product photo to reliable local catalogue art.
+// This prevents placeholder-service URLs from entering the product database.
+const ph = (bg: string, _fg: string, text: string) => {
+  const value = `${bg} ${text}`.toLowerCase()
+  if (value.includes('fdb913') || value.includes('csk')) {
+    return '/images/cricket/australia-gold-cricket-jersey.jpg'
+  }
+  if (value.includes('green')) {
+    return '/images/cricket/green-cricket-jersey.jpg'
+  }
+  if (value.includes('ffffff')) {
+    return '/images/cricket/test-white-cricket-jersey.jpg'
+  }
+  return '/images/cricket/india-blue-cricket-jersey.jpg'
+}
 
 const TEAMS_DATA = [
   { name: 'Mumbai Indians', slug: 'mumbai-indians', short_name: 'MI', primary_color: '#004BA0', secondary_color: '#F5C518', city: 'Mumbai' },

@@ -1,9 +1,12 @@
 import { NextResponse } from 'next/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 
-// CSK brand colors: Yellow #FDB913, Blue #0081E3
-const ph = (bg: string, fg: string, text: string) =>
-  `https://placehold.co/600x800/${bg.replace('#', '')}/${fg.replace('#', '')}?text=${encodeURIComponent(text)}`
+// Reliable local catalogue art; arguments are kept so the product declarations
+// remain readable while never emitting placeholder-service URLs.
+const ph = (bg: string, fg: string, text: string) => {
+  void `${bg}${fg}${text}`
+  return '/images/cricket/australia-gold-cricket-jersey.jpg'
+}
 
 const Y = '#FDB913'  // CSK yellow
 const B = '#0081E3'  // CSK blue
